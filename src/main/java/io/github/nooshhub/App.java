@@ -17,7 +17,22 @@
 
 package io.github.nooshhub;
 
-public class App {
+/**
+ * Test.
+ * @author Neal Shan
+ * @since 0.0.1
+ */
+public final class App {
+
+	// Constructor.
+	private App() {
+	}
+
+	/**
+	 * main method.
+	 *
+	 * @param args input arguments
+	 */
 	public static void main(String[] args) {
 		System.out.println("Hello");
 	}
