@@ -72,9 +72,10 @@ public class JdbcPipe {
     static class ElasticsearchConfig {
         @Bean
         public ElasticsearchClient esClient() {
-            // Create the low-level client
+            // TODO: config elasticsearch host name
             final String hostname = "10.10.21.16";
 
+            // Create the low-level client
             RestClient restClient = RestClient.builder(new HttpHost(hostname, 9200, "http"))
                     // enable keepalive to 300s, to be less than the ELB idle time 350s
                     // so client can close connection first
