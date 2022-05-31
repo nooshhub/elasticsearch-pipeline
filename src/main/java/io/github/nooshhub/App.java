@@ -17,16 +17,15 @@
 
 package io.github.nooshhub;
 
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 /**
  * Test.
  * @author Neal Shan
  * @since 0.0.1
  */
-public final class App {
-
-	// Constructor.
-	private App() {
-	}
+@SpringBootApplication
+public class App {
 
 	/**
 	 * main method.
