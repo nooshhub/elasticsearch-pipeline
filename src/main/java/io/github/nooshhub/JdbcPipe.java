@@ -56,14 +56,22 @@ public class JdbcPipe {
     @Autowired
     private ElasticsearchClient esClient;
 
-    public List<String> scanIndexConfig() {
+    public static final String INDEX_CONFIG_LOCATION ="es/";
+
+    public Map<String, String> scanIndexConfig() {
         // TODO:
         // scan the es/ folder,
         // 1 use child folder as index name
         // 2 add child folder settings and mappings
         // 3 add sql folder's sql and extension.properties
-
-        return List.of("nh_project");
+        Map<String, String> config = new HashMap<>();
+        final String indexName = "nh_project";
+        config.put("indexName", indexName);
+        config.put("indexSettingsPath", INDEX_CONFIG_LOCATION + indexName + "/settings.json");
+        config.put("indexMappingPath", INDEX_CONFIG_LOCATION + indexName + "/mapping.json");
+        config.put("idColumns", "nh_project_id");
+        config.put("extensionColumn", "nh_project_id");
+        return config;
     }
 
     public void createIndex(String indexName) {
@@ -84,14 +92,14 @@ public class JdbcPipe {
             }
 
             // create index with settings
-            InputStream indexSettingIns = this.getClass().getClassLoader().getResourceAsStream("es/" + indexName + "/settings.json");
+            InputStream indexSettingIns = this.getClass().getClassLoader().getResourceAsStream(INDEX_CONFIG_LOCATION + indexName + "/settings.json");
             esClient.indices().create(CreateIndexRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexSettingIns)));
             System.out.println("Index is created");
 
             // update index mapping
-            InputStream indexMappingIns = this.getClass().getClassLoader().getResourceAsStream("es/" + indexName + "/mapping.json");
+            InputStream indexMappingIns = this.getClass().getClassLoader().getResourceAsStream(INDEX_CONFIG_LOCATION + indexName + "/mapping.json");
             esClient.indices().putMapping(PutMappingRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexMappingIns)));
