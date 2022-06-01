@@ -25,6 +25,7 @@ public class JdbcPipeTests {
     @Test
     public void createDocument() {
         String indexName = "nh_project";
-        jdbcPipe.createDocument(indexName);
+        String customColumn = "nh_project_id";
+        jdbcPipe.createDocument(indexName, customColumn);
     }
 }

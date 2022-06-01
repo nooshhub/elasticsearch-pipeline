@@ -4,4 +4,7 @@ espipe:
     port: 9200
     protocol: http
 
+# improve fetch data from database performance
+#spring.datasource.hikari.auto-commit: false
+#spring.jdbc.template.fetch-size: 50
 

@@ -36,8 +36,10 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.sql.JDBCType;
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -53,6 +55,14 @@ public class JdbcPipe {
     private ObjectMapper objectMapper;
     @Autowired
     private ElasticsearchClient esClient;
+
+    public List<String> getIndexes() {
+        // TODO:
+        // scan the es folder, use child folder as index name
+        // provide a es folder for user to put index settings and mapping,
+        // then we scan it and load to the list too
+        return List.of("nh_project");
+    }
 
     public void createIndex(String indexName) {
 
@@ -72,14 +82,14 @@ public class JdbcPipe {
             }
 
             // create index with settings
-            InputStream indexSettingIns = this.getClass().getClassLoader().getResourceAsStream("es/" + indexName + "_settings.json");
+            InputStream indexSettingIns = this.getClass().getClassLoader().getResourceAsStream("es/" + indexName + "/settings.json");
             esClient.indices().create(CreateIndexRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexSettingIns)));
             System.out.println("Index is created");
 
             // update index mapping
-            InputStream indexMappingIns = this.getClass().getClassLoader().getResourceAsStream("es/" + indexName + "_mapping.json");
+            InputStream indexMappingIns = this.getClass().getClassLoader().getResourceAsStream("es/" + indexName + "/mapping.json");
             esClient.indices().putMapping(PutMappingRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexMappingIns)));
@@ -94,51 +104,45 @@ public class JdbcPipe {
         }
     }
 
-    public void createDocument(String indexName) {
+    public void createDocument(String indexName, String customColumn) {
 
         // TODO: load main table or sql, with the configed number of requests
-        jdbcTemplate.query("select * from nh_project where nh_project_id < 10", rs -> {
-            System.out.println(rs.getClass().getName());
+        final String initSql = "select * from nh_project";
+        final String extensionSql = "SELECT attribute_key, attribute_value FROM nh_property_attribute WHERE nh_project_id = ?";
+
+        jdbcTemplate.query(initSql, rs -> {
+            // put stand fields and custom fields in flattenMap
+            Map<String, Object> flattenMap = new HashMap<>();
+
+            // prepare standard fields
             ResultSetMetaData rsMetaData = rs.getMetaData();
             int count = rsMetaData.getColumnCount();
-            Map<String, Object> map = new HashMap<>();
             for (int i = 1; i <= count; i++) {
-                final String columnName = rsMetaData.getColumnName(i);
-                System.out.println(columnName);
-                if (rs.getObject(i) != null) {
-                    System.out.println(rs.getObject(i).getClass().getName());
-                }
-
-                map.put(columnName.toLowerCase(), rs.getObject(i));
-
+                flattenMap.put(rsMetaData.getColumnName(i).toLowerCase(), rs.getObject(i));
             }
 
-            // jdbc metadata
-            // put in map
-            // and load custom
-            final String customColumn = "nh_project_id";
-            if (map.get(customColumn) != null) {
-                System.out.println("load custom " + map.get(customColumn));
-                // TODO: load relation config, sql
-                jdbcTemplate.query("SELECT attribute_key, attribute_value FROM nh_property_attribute WHERE " + customColumn + " = " + map.get(customColumn), prs -> {
-                    ResultSetMetaData prsMetaData = prs.getMetaData();
-                    int pcount = prsMetaData.getColumnCount();
-                    for (int i = 1; i <= pcount; i++) {
-                        map.put("custom_" + prs.getString(1).toLowerCase(), prs.getObject(i));
-
-                    }
-                });
+            // prepare custom fields
+            if (customColumn != null && flattenMap.get(customColumn.toLowerCase()) != null) {
+                jdbcTemplate.query(extensionSql,
+                        new Object[]{flattenMap.get(customColumn)},
+                        new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
+                        prs -> {
+                            ResultSetMetaData prsMetaData = prs.getMetaData();
+                            int pcount = prsMetaData.getColumnCount();
+                            for (int i = 1; i <= pcount; i++) {
+                                flattenMap.put(prs.getString(1).toLowerCase(), prs.getObject(i));
+                            }
+                        });
             }
 
             // convert to json
             // use fieldStrategy to convert data type, like date to YYYY-DD-MM,  Long to String , String to Long
             try {
-                final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(map);
+                final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
                 System.out.println(json);
 
-
-                // TODO: load id from config, support columns combination as id
-                final String documentId = map.get(customColumn).toString();
+                // TODO: load id from config, support columns combination strategy as id
+                final String documentId = flattenMap.get(customColumn).toString();
                 IndexRequest<JsonData> req;
                 req = IndexRequest.of(b -> {
                             return b
