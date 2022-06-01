@@ -73,7 +73,7 @@ public class JdbcPipe {
         @Bean
         public ElasticsearchClient esClient() {
             // TODO: config elasticsearch host name
-            final String hostname = "10.10.21.16";
+            final String hostname = "localhost";
 
             // Create the low-level client
             RestClient restClient = RestClient.builder(new HttpHost(hostname, 9200, "http"))
