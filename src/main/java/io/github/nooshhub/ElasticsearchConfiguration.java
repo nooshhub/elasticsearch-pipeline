@@ -9,7 +9,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,17 +20,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ElasticsearchConfiguration {
 
-    @Value("${espipe.elasticsearch.host:localhost}")
-    private String host;
-    @Value("${espipe.elasticsearch.port:9200}")
-    private int port;
-    @Value("${espipe.elasticsearch.protocol:http}")
-    private String protocol;
+    @Autowired
+    private EspipeElasticsearchProperties espipeElasticsearchProperties;
 
     @Bean
     public ElasticsearchClient esClient() {
         // Create the low-level client
-        RestClient restClient = RestClient.builder(new HttpHost(host, port, protocol))
+        RestClient restClient = RestClient.builder(new HttpHost(espipeElasticsearchProperties.getHost(),
+                espipeElasticsearchProperties.getPort(), espipeElasticsearchProperties.getProtocol()))
                 // enable keepalive to 300s, to be less than the ELB idle time 350s
                 // so client can close connection first
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
