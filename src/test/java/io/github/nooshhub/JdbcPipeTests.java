@@ -17,7 +17,14 @@ public class JdbcPipeTests {
     private JdbcPipe jdbcPipe;
 
     @Test
-    public void create() {
-        jdbcPipe.create();
+    public void createIndex() {
+        String indexName = "nh_project";
+        jdbcPipe.createIndex(indexName);
+    }
+
+    @Test
+    public void createDocument() {
+        String indexName = "nh_project";
+        jdbcPipe.createDocument(indexName);
     }
 }

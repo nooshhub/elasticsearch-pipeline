@@ -1,6 +1,6 @@
 insert into nh_project values
-(1, 'project 1', sysdate, null),
-(2, 'project 2', sysdate, null);
+(1, 'project 1', '1,2', sysdate, null),
+(2, 'project 2', '2,3', sysdate, null);
 
 insert into nh_property_attribute values
 (1, 1, 'label 11', 'label_11', 'value 11', sysdate, null),

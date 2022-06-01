@@ -1,6 +1,7 @@
 create table nh_project (
     nh_project_id identity,
     name varchar (255),
+    user_ids varchar (255),
     create_date timestamp ,
     mod_date timestamp,
     primary key(nh_project_id)
