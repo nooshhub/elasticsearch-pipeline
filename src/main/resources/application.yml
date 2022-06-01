@@ -1,4 +1,6 @@
-elasticsearch:
-  host: localhost
-  port: 9200
-  protocol: http
+espipe:
+  elasticsearch:
+    host: localhost
+    port: 9200
+    protocol: http
+

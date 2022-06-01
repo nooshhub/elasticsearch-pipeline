@@ -20,11 +20,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ElasticsearchConfiguration {
 
-    @Value("${elasticsearch.host:localhost}")
+    @Value("${espipe.elasticsearch.host:localhost}")
     private String host;
-    @Value("${elasticsearch.port:9200}")
+    @Value("${espipe.elasticsearch.port:9200}")
     private int port;
-    @Value("${elasticsearch.protocol:http}")
+    @Value("${espipe.elasticsearch.protocol:http}")
     private String protocol;
 
     @Bean
