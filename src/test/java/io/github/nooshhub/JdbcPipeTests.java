@@ -18,14 +18,11 @@ public class JdbcPipeTests {
 
     @Test
     public void createIndex() {
-        String indexName = "nh_project";
-        jdbcPipe.createIndex(indexName);
+        jdbcPipe.createIndex(jdbcPipe.scanIndexConfig());
     }
 
     @Test
     public void createDocument() {
-        String indexName = "nh_project";
-        String customColumn = "nh_project_id";
-        jdbcPipe.createDocument(indexName, customColumn);
+        jdbcPipe.createDocument(jdbcPipe.scanIndexConfig());
     }
 }

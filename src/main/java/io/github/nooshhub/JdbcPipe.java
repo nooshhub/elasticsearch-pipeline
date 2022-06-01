@@ -69,14 +69,22 @@ public class JdbcPipe {
         config.put("indexName", indexName);
         config.put("indexSettingsPath", INDEX_CONFIG_LOCATION + indexName + "/settings.json");
         config.put("indexMappingPath", INDEX_CONFIG_LOCATION + indexName + "/mapping.json");
+        config.put("initSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/init.sql");
+        config.put("updateSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/update.sql");
+        config.put("deleteSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/delete.sql");
+        config.put("extensionSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/extension.sql");
         config.put("idColumns", "nh_project_id");
         config.put("extensionColumn", "nh_project_id");
         return config;
     }
 
-    public void createIndex(String indexName) {
+    public void createIndex(Map<String, String> indexConfig) {
 
-        // TODO: load index name from config?
+        // TODO: validation: not found exception
+        final String indexName = indexConfig.get("indexName");
+        final String settingsPath = indexConfig.get("indexSettingsPath");
+        final String mappingPath = indexConfig.get("indexMappingPath");
+
         try {
             // delete index if index is exist
             try {
@@ -92,14 +100,14 @@ public class JdbcPipe {
             }
 
             // create index with settings
-            InputStream indexSettingIns = this.getClass().getClassLoader().getResourceAsStream(INDEX_CONFIG_LOCATION + indexName + "/settings.json");
+            InputStream indexSettingIns = this.getClass().getClassLoader().getResourceAsStream(settingsPath);
             esClient.indices().create(CreateIndexRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexSettingIns)));
             System.out.println("Index is created");
 
             // update index mapping
-            InputStream indexMappingIns = this.getClass().getClassLoader().getResourceAsStream(INDEX_CONFIG_LOCATION + indexName + "/mapping.json");
+            InputStream indexMappingIns = this.getClass().getClassLoader().getResourceAsStream(mappingPath);
             esClient.indices().putMapping(PutMappingRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexMappingIns)));
@@ -114,9 +122,12 @@ public class JdbcPipe {
         }
     }
 
-    public void createDocument(String indexName, String extensionColumn) {
+    public void createDocument(Map<String, String> indexConfig) {
 
-        // TODO: load main table or sql, with the configed number of requests
+        // TODO: validation: not found exception
+        String indexName = indexConfig.get("indexName");
+        String extensionColumn = indexConfig.get("extensionColumn");
+        // TODO: get from config
         final String initSql = "select * from nh_project";
         final String extensionSql = "SELECT attribute_key, attribute_value FROM nh_property_attribute WHERE nh_project_id = ?";
 
