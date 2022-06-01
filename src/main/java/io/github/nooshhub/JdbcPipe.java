@@ -21,26 +21,15 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.json.JsonData;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.ElasticsearchTransport;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpHost;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.nio.reactor.IOReactorConfig;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.sql.ResultSetMetaData;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,60 +45,6 @@ public class JdbcPipe {
     private ObjectMapper objectMapper;
     @Autowired
     private ElasticsearchClient esClient;
-
-
-    @Configuration
-    static class JacksonConfig {
-        @Bean
-        public ObjectMapper objectMapper() {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
-            return objectMapper;
-        }
-    }
-
-    @Configuration
-    static class ElasticsearchConfig {
-        @Bean
-        public ElasticsearchClient esClient() {
-            // TODO: config elasticsearch host name
-            final String hostname = "localhost";
-
-            // Create the low-level client
-            RestClient restClient = RestClient.builder(new HttpHost(hostname, 9200, "http"))
-                    // enable keepalive to 300s, to be less than the ELB idle time 350s
-                    // so client can close connection first
-                    .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
-                            .setKeepAliveStrategy((response, context) -> 300000)
-                            .setDefaultIOReactorConfig(IOReactorConfig.custom()
-                                    .setSoKeepAlive(true)
-                                    .build())
-                    )
-                    // raise the connection timeout from 1s to 5s to exclude the timeout issue
-                    .setRequestConfigCallback(
-                            new RestClientBuilder.RequestConfigCallback() {
-                                @Override
-                                public RequestConfig.Builder customizeRequestConfig(
-                                        RequestConfig.Builder requestConfigBuilder) {
-                                    return requestConfigBuilder
-                                            .setConnectTimeout(5000);
-                                }
-                            })
-                    .build();
-
-
-            // Create the transport with a Jackson mapper
-            final JacksonJsonpMapper mapper = new JacksonJsonpMapper();
-//            mapper.objectMapper().setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
-            ElasticsearchTransport transport = new RestClientTransport(
-                    restClient, mapper);
-
-            // And create the API client
-            ElasticsearchClient client = new ElasticsearchClient(transport);
-            return client;
-        }
-
-    }
 
 
     public void create() {
