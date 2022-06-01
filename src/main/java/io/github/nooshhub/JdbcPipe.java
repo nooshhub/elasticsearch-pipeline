@@ -104,7 +104,7 @@ public class JdbcPipe {
         }
     }
 
-    public void createDocument(String indexName, String customColumn) {
+    public void createDocument(String indexName, String extensionColumn) {
 
         // TODO: load main table or sql, with the configed number of requests
         final String initSql = "select * from nh_project";
@@ -122,9 +122,9 @@ public class JdbcPipe {
             }
 
             // prepare custom fields
-            if (customColumn != null && flattenMap.get(customColumn.toLowerCase()) != null) {
+            if (extensionColumn != null && flattenMap.get(extensionColumn.toLowerCase()) != null) {
                 jdbcTemplate.query(extensionSql,
-                        new Object[]{flattenMap.get(customColumn)},
+                        new Object[]{flattenMap.get(extensionColumn)},
                         new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
                         prs -> {
                             ResultSetMetaData prsMetaData = prs.getMetaData();
@@ -136,13 +136,12 @@ public class JdbcPipe {
             }
 
             // convert to json
-            // use fieldStrategy to convert data type, like date to YYYY-DD-MM,  Long to String , String to Long
             try {
                 final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
                 System.out.println(json);
 
                 // TODO: load id from config, support columns combination strategy as id
-                final String documentId = flattenMap.get(customColumn).toString();
+                final String documentId = flattenMap.get(extensionColumn).toString();
                 IndexRequest<JsonData> req;
                 req = IndexRequest.of(b -> {
                             return b
