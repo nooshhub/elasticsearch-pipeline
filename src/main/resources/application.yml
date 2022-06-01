@@ -3,6 +3,10 @@ espipe:
     host: localhost
     port: 9200
     protocol: http
-
+  datasource:
+    platform: h2
+    sql:
+      main-location:
+      custom-location:
 
 
