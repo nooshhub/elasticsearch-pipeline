@@ -56,11 +56,13 @@ public class JdbcPipe {
     @Autowired
     private ElasticsearchClient esClient;
 
-    public List<String> getIndexes() {
+    public List<String> scanIndexConfig() {
         // TODO:
-        // scan the es folder, use child folder as index name
-        // provide a es folder for user to put index settings and mapping,
-        // then we scan it and load to the list too
+        // scan the es/ folder,
+        // 1 use child folder as index name
+        // 2 add child folder settings and mappings
+        // 3 add sql folder's sql and extension.properties
+
         return List.of("nh_project");
     }
 
