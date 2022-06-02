@@ -33,15 +33,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.JDBCType;
 import java.sql.ResultSetMetaData;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -57,39 +56,6 @@ public class JdbcPipe {
     private ObjectMapper objectMapper;
     @Autowired
     private ElasticsearchClient esClient;
-
-    public static final String INDEX_CONFIG_LOCATION = "es/";
-
-    public Map<String, String> scanIndexConfig() {
-
-
-        // TODO:
-        // scan the es/ folder,
-        // 1 use child folder as index name
-        // 2 add child folder settings and mappings
-        // 3 add sql folder's sql and extension.properties
-        // TODO: validation: not found exception
-        Map<String, String> config = new HashMap<>();
-        final String indexName = "nh_project";
-        config.put("indexName", indexName);
-        config.put("indexSettingsPath", INDEX_CONFIG_LOCATION + indexName + "/settings.json");
-        config.put("indexMappingPath", INDEX_CONFIG_LOCATION + indexName + "/mapping.json");
-        config.put("initSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/init.sql");
-        config.put("syncSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/sync.sql");
-        config.put("deleteSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/delete.sql");
-        config.put("extensionSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/extension.sql");
-
-        String sqlPropertiesPath = INDEX_CONFIG_LOCATION + indexName + "/sql/sql.properties";
-        Properties sqlProperties = new Properties();
-        try (InputStream sqlPropertiesIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlPropertiesPath)) {
-            sqlProperties.load(sqlPropertiesIns);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        config.put("idColumns", sqlProperties.getProperty("id_columns"));
-        config.put("extensionColumn", sqlProperties.getProperty("extension_column"));
-        return config;
-    }
 
     public void createIndex(Map<String, String> indexConfig) {
 

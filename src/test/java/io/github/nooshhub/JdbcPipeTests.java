@@ -18,11 +18,19 @@ public class JdbcPipeTests {
 
     @Test
     public void createIndex() {
-        jdbcPipe.createIndex(jdbcPipe.scanIndexConfig());
+        IndexConfigRegistry.getInstance()
+                .getIndexConfigs()
+                .forEach(indexConfig -> {
+                    jdbcPipe.createIndex(indexConfig);
+                });
     }
 
     @Test
     public void createDocument() {
-        jdbcPipe.createDocument(jdbcPipe.scanIndexConfig());
+        IndexConfigRegistry.getInstance()
+                .getIndexConfigs()
+                .forEach(indexConfig -> {
+                    jdbcPipe.createDocument(indexConfig);
+                });
     }
 }
