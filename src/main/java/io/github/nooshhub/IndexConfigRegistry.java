@@ -11,6 +11,7 @@ import java.util.*;
  * @author neals
  * @since 6/2/2022
  */
+// TODO: what about a resource loader to load resources instead?
 public class IndexConfigRegistry {
     public static final String INDEX_CONFIG_LOCATION = "es/";
     private static final IndexConfigRegistry REGISTRY = new IndexConfigRegistry();
