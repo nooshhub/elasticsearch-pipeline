@@ -41,6 +41,7 @@ import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 
@@ -75,8 +76,17 @@ public class JdbcPipe {
         config.put("updateSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/update.sql");
         config.put("deleteSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/delete.sql");
         config.put("extensionSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/extension.sql");
-        config.put("idColumns", "nh_project_id");
-        config.put("extensionColumn", "nh_project_id");
+
+        String sqlPropertiesPath = INDEX_CONFIG_LOCATION + indexName + "/sql/sql.properties";
+        InputStream sqlPropertiesIns = this.getClass().getClassLoader().getResourceAsStream(sqlPropertiesPath);
+        Properties sqlProperties = new Properties();
+        try {
+            sqlProperties.load(sqlPropertiesIns);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        config.put("idColumns", sqlProperties.getProperty("id_columns"));
+        config.put("extensionColumn", sqlProperties.getProperty("extension_column"));
         return config;
     }
 
