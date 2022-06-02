@@ -176,7 +176,7 @@ public class JdbcPipe {
                 final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
                 System.out.println(json);
 
-                // TODO: load id from config, support columns combination strategy as id
+                // load id from config, support columns combination strategy as id
                 final String documentId;
                 if (idColumns.length == 1) {
                     documentId = flattenMap.get(idColumns[0]).toString();
