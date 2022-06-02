@@ -75,7 +75,7 @@ public class JdbcPipe {
         config.put("indexSettingsPath", INDEX_CONFIG_LOCATION + indexName + "/settings.json");
         config.put("indexMappingPath", INDEX_CONFIG_LOCATION + indexName + "/mapping.json");
         config.put("initSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/init.sql");
-        config.put("updateSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/update.sql");
+        config.put("syncSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/sync.sql");
         config.put("deleteSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/delete.sql");
         config.put("extensionSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/extension.sql");
 
