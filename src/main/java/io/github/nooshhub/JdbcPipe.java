@@ -61,6 +61,8 @@ public class JdbcPipe {
     public static final String INDEX_CONFIG_LOCATION = "es/";
 
     public Map<String, String> scanIndexConfig() {
+
+
         // TODO:
         // scan the es/ folder,
         // 1 use child folder as index name
@@ -78,9 +80,8 @@ public class JdbcPipe {
         config.put("extensionSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/extension.sql");
 
         String sqlPropertiesPath = INDEX_CONFIG_LOCATION + indexName + "/sql/sql.properties";
-        InputStream sqlPropertiesIns = this.getClass().getClassLoader().getResourceAsStream(sqlPropertiesPath);
         Properties sqlProperties = new Properties();
-        try {
+        try (InputStream sqlPropertiesIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlPropertiesPath)) {
             sqlProperties.load(sqlPropertiesIns);
         } catch (IOException e) {
             e.printStackTrace();
@@ -96,35 +97,40 @@ public class JdbcPipe {
         final String settingsPath = indexConfig.get("indexSettingsPath");
         final String mappingPath = indexConfig.get("indexMappingPath");
 
+        // delete index if index is exist
         try {
-            // delete index if index is exist
-            try {
-                // Delete index must be synchronized
-                AcknowledgedResponse deleteIndexResponse = esClient.indices().delete(DeleteIndexRequest.of(b -> b.index(indexName)));
-                if (deleteIndexResponse.acknowledged()) {
-                    System.out.println("Index is deleted");
-                }
-            } catch (ElasticsearchException exception) {
-                if (exception.status() == HttpStatus.NOT_FOUND.value()) {
-                    System.out.println("Index is not exist, no operation");
-                }
+            // Delete index must be synchronized
+            AcknowledgedResponse deleteIndexResponse = esClient.indices().delete(DeleteIndexRequest.of(b -> b.index(indexName)));
+            if (deleteIndexResponse.acknowledged()) {
+                System.out.println("Index is deleted");
             }
+        } catch (ElasticsearchException exception) {
+            if (exception.status() == HttpStatus.NOT_FOUND.value()) {
+                System.out.println("Index is not exist, no operation");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        try (InputStream indexSettingIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(settingsPath)) {
             // create index with settings
-            InputStream indexSettingIns = this.getClass().getClassLoader().getResourceAsStream(settingsPath);
             esClient.indices().create(CreateIndexRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexSettingIns)));
             System.out.println("Index is created");
+        } catch (IOException e) {
+            e.printStackTrace();
+            // TODO: do we need to close the client manually
+            // https://github.com/elastic/elasticsearch-java/issues/104
+            // TODO: DO we really need a elasticsearch-client? the httpClient is enough and we can control all behaviors as expected
+        }
 
+        try (InputStream indexMappingIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(mappingPath)) {
             // update index mapping
-            InputStream indexMappingIns = this.getClass().getClassLoader().getResourceAsStream(mappingPath);
             esClient.indices().putMapping(PutMappingRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexMappingIns)));
             System.out.println("Index mapping is updated");
-
-
         } catch (IOException e) {
             e.printStackTrace();
             // TODO: do we need to close the client manually
@@ -139,7 +145,7 @@ public class JdbcPipe {
         String initSql = getSql(indexConfig.get("initSqlPath"));
         String extensionSql = getSql(indexConfig.get("extensionSqlPath"));
         String[] idColumns = indexConfig.get("idColumns").split(",");
-        
+
         jdbcTemplate.query(initSql, rs -> {
             // put stand fields and custom fields in flattenMap
             Map<String, Object> flattenMap = new HashMap<>();
@@ -172,7 +178,7 @@ public class JdbcPipe {
 
                 // TODO: load id from config, support columns combination strategy as id
                 final String documentId;
-                if(idColumns.length == 1) {
+                if (idColumns.length == 1) {
                     documentId = flattenMap.get(idColumns[0]).toString();
                 } else {
                     String[] ids = new String[idColumns.length];
@@ -182,7 +188,7 @@ public class JdbcPipe {
                     documentId = String.join("-", ids);
                 }
 
-                if(documentId == null) {
+                if (documentId == null) {
                     throw new EspipeException("documentId must not be null");
                 }
 
@@ -223,12 +229,12 @@ public class JdbcPipe {
         // https://howtodoinjava.com/java/io/java-read-file-to-string-examples/
         // https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java
         // https://www.baeldung.com/convert-input-stream-to-string
-        
+
         if (sqlPath == null) {
             throw new EspipeException("initSql is not found by " + sqlPath);
         }
 
-        InputStream initSqlIns = this.getClass().getClassLoader().getResourceAsStream(sqlPath);
+        InputStream initSqlIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlPath);
         if (initSqlIns == null) {
             throw new EspipeException("initSql is not found by " + sqlPath);
         }
