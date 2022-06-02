@@ -32,15 +32,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.JDBCType;
 import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -56,7 +57,7 @@ public class JdbcPipe {
     @Autowired
     private ElasticsearchClient esClient;
 
-    public static final String INDEX_CONFIG_LOCATION ="es/";
+    public static final String INDEX_CONFIG_LOCATION = "es/";
 
     public Map<String, String> scanIndexConfig() {
         // TODO:
@@ -64,6 +65,7 @@ public class JdbcPipe {
         // 1 use child folder as index name
         // 2 add child folder settings and mappings
         // 3 add sql folder's sql and extension.properties
+        // TODO: validation: not found exception
         Map<String, String> config = new HashMap<>();
         final String indexName = "nh_project";
         config.put("indexName", indexName);
@@ -80,7 +82,6 @@ public class JdbcPipe {
 
     public void createIndex(Map<String, String> indexConfig) {
 
-        // TODO: validation: not found exception
         final String indexName = indexConfig.get("indexName");
         final String settingsPath = indexConfig.get("indexSettingsPath");
         final String mappingPath = indexConfig.get("indexMappingPath");
@@ -123,14 +124,12 @@ public class JdbcPipe {
     }
 
     public void createDocument(Map<String, String> indexConfig) {
-
-        // TODO: validation: not found exception
         String indexName = indexConfig.get("indexName");
         String extensionColumn = indexConfig.get("extensionColumn");
-        // TODO: get from config
-        final String initSql = "select * from nh_project";
-        final String extensionSql = "SELECT attribute_key, attribute_value FROM nh_property_attribute WHERE nh_project_id = ?";
-
+        String initSql = getSql(indexConfig.get("initSqlPath"));
+        String extensionSql = getSql(indexConfig.get("extensionSqlPath"));
+        String[] idColumns = indexConfig.get("idColumns").split(",");
+        
         jdbcTemplate.query(initSql, rs -> {
             // put stand fields and custom fields in flattenMap
             Map<String, Object> flattenMap = new HashMap<>();
@@ -162,7 +161,22 @@ public class JdbcPipe {
                 System.out.println(json);
 
                 // TODO: load id from config, support columns combination strategy as id
-                final String documentId = flattenMap.get(extensionColumn).toString();
+                final String documentId;
+                if(idColumns.length == 1) {
+                    documentId = flattenMap.get(idColumns[0]).toString();
+                } else {
+                    String[] ids = new String[idColumns.length];
+                    for (int i = 0; i < idColumns.length; i++) {
+                        ids[i] = flattenMap.get(idColumns[i]).toString();
+                    }
+                    documentId = String.join("-", ids);
+                }
+
+                if(documentId == null) {
+                    throw new EspipeException("documentId must not be null");
+                }
+
+
                 IndexRequest<JsonData> req;
                 req = IndexRequest.of(b -> {
                             return b
@@ -192,5 +206,26 @@ public class JdbcPipe {
 
 
         });
+    }
+
+    private String getSql(String sqlPath) {
+        // TODO: optimize io speed and put it in cache
+        // https://howtodoinjava.com/java/io/java-read-file-to-string-examples/
+        // https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java
+        // https://www.baeldung.com/convert-input-stream-to-string
+        
+        if (sqlPath == null) {
+            throw new EspipeException("initSql is not found by " + sqlPath);
+        }
+
+        InputStream initSqlIns = this.getClass().getClassLoader().getResourceAsStream(sqlPath);
+        if (initSqlIns == null) {
+            throw new EspipeException("initSql is not found by " + sqlPath);
+        }
+
+        return new BufferedReader(
+                new InputStreamReader(initSqlIns, StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
     }
 }
