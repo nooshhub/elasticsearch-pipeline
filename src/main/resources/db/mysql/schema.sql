@@ -22,8 +22,7 @@ create table nh_property_attribute (
 
 create table espipe_timer (
     index_name varchar(255),
-    last_refresh_start_time timestamp,
-    last_refresh_end_time timestamp,
-    current_refresh_start_time timestamp,
+    last_refresh_time timestamp,
     primary key(index_name)
 )
+

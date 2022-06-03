@@ -39,7 +39,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.JDBCType;
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,9 +59,15 @@ public class JdbcPipe {
     private ObjectMapper objectMapper;
     @Autowired
     private ElasticsearchClient esClient;
+    @Autowired
+    private EspipeTimer espipeTimer;
 
+
+    /**
+     * create index
+     * @param indexConfig index config
+     */
     public void createIndex(Map<String, String> indexConfig) {
-
         final String indexName = indexConfig.get("indexName");
         final String settingsPath = indexConfig.get("indexSettingsPath");
         final String mappingPath = indexConfig.get("indexMappingPath");
@@ -105,89 +114,125 @@ public class JdbcPipe {
         }
     }
 
-    public void createDocument(Map<String, String> indexConfig) {
+    /**
+     * init data to index
+     * @param indexConfig index config
+     */
+    public void init(Map<String, String> indexConfig) {
+        String indexName = indexConfig.get("indexName");
+        String initSql = getSql(indexConfig.get("initSqlPath"));
+
+        LocalDateTime currentRefreshTime = LocalDateTime.now();
+        espipeTimer.reset(indexName, currentRefreshTime);
+        
+        jdbcTemplate.query(initSql,
+                new Object[]{currentRefreshTime},
+                new int[]{JDBCType.TIMESTAMP.getVendorTypeNumber()},
+                rs -> {
+                    createDocument(indexConfig, rs);
+                });
+    }
+
+    /**
+     * sync data to index
+     * @param indexConfig index config
+     */
+    public void sync(Map<String, String> indexConfig) {
+        String indexName = indexConfig.get("indexName");
+        String syncSql = getSql(indexConfig.get("syncSqlPath"));
+
+        // get the last refresh time from the database
+        LocalDateTime lastRefreshTime = espipeTimer.findLastRefreshTime(indexName);
+        LocalDateTime currentRefreshTime = LocalDateTime.now();
+        espipeTimer.reset(indexName, currentRefreshTime);
+
+        jdbcTemplate.query(syncSql,
+                new Object[]{lastRefreshTime, currentRefreshTime},
+                new int[]{JDBCType.TIMESTAMP.getVendorTypeNumber(), JDBCType.TIMESTAMP.getVendorTypeNumber()},
+                rs -> {
+                    createDocument(indexConfig, rs);
+                });
+    }
+
+    // TODO: create document one by one is slow, try batch update / es bulk api
+    private void createDocument(Map<String, String> indexConfig, ResultSet rs) throws SQLException {
         String indexName = indexConfig.get("indexName");
         String extensionColumn = indexConfig.get("extensionColumn");
-        String initSql = getSql(indexConfig.get("initSqlPath"));
         String extensionSql = getSql(indexConfig.get("extensionSqlPath"));
         String[] idColumns = indexConfig.get("idColumns").split(",");
 
-        jdbcTemplate.query(initSql, rs -> {
-            // put stand fields and custom fields in flattenMap
-            Map<String, Object> flattenMap = new HashMap<>();
+        // put stand fields and custom fields in flattenMap
+        Map<String, Object> flattenMap = new HashMap<>();
 
-            // prepare standard fields
-            ResultSetMetaData rsMetaData = rs.getMetaData();
-            int count = rsMetaData.getColumnCount();
-            for (int i = 1; i <= count; i++) {
-                flattenMap.put(rsMetaData.getColumnName(i).toLowerCase(), rs.getObject(i));
-            }
+        // prepare standard fields
+        ResultSetMetaData rsMetaData = rs.getMetaData();
+        int count = rsMetaData.getColumnCount();
+        for (int i = 1; i <= count; i++) {
+            flattenMap.put(rsMetaData.getColumnName(i).toLowerCase(), rs.getObject(i));
+        }
 
-            // prepare custom fields
-            if (extensionColumn != null && flattenMap.get(extensionColumn.toLowerCase()) != null) {
-                jdbcTemplate.query(extensionSql,
-                        new Object[]{flattenMap.get(extensionColumn)},
-                        new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
-                        prs -> {
-                            ResultSetMetaData prsMetaData = prs.getMetaData();
-                            int pcount = prsMetaData.getColumnCount();
-                            for (int i = 1; i <= pcount; i++) {
-                                flattenMap.put(prs.getString(1).toLowerCase(), prs.getObject(i));
-                            }
-                        });
-            }
-
-            // convert to json
-            try {
-                final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
-                System.out.println(json);
-
-                // load id from config, support columns combination strategy as id
-                final String documentId;
-                if (idColumns.length == 1) {
-                    documentId = flattenMap.get(idColumns[0]).toString();
-                } else {
-                    String[] ids = new String[idColumns.length];
-                    for (int i = 0; i < idColumns.length; i++) {
-                        ids[i] = flattenMap.get(idColumns[i]).toString();
-                    }
-                    documentId = String.join("-", ids);
-                }
-
-                if (documentId == null) {
-                    throw new EspipeException("documentId must not be null");
-                }
-
-
-                IndexRequest<JsonData> req;
-                req = IndexRequest.of(b -> {
-                            return b
-                                    .index(indexName)
-                                    .id(documentId)
-                                    .withJson(new StringReader(json));
+        // prepare custom fields
+        if (extensionColumn != null && flattenMap.get(extensionColumn.toLowerCase()) != null) {
+            jdbcTemplate.query(extensionSql,
+                    new Object[]{flattenMap.get(extensionColumn)},
+                    new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
+                    prs -> {
+                        ResultSetMetaData prsMetaData = prs.getMetaData();
+                        int pcount = prsMetaData.getColumnCount();
+                        for (int i = 1; i <= pcount; i++) {
+                            flattenMap.put(prs.getString(1).toLowerCase(), prs.getObject(i));
                         }
-                );
+                    });
+        }
 
-                // @version @timestamp, why logstash created index has these fields
-                // https://discuss.elastic.co/t/deleting-version-and-timestamp-fields-in-logstash-2-2-2/169475
-                IndexResponse res = esClient.index(req);
+        // convert to json
+        try {
+            final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
+            System.out.println(json);
 
-                // _version in response
-                // https://www.elastic.co/blog/elasticsearch-versioning-support
-                System.out.println(res);
+            // load id from config, support columns combination strategy as id
+            final String documentId;
+            if (idColumns.length == 1) {
+                documentId = flattenMap.get(idColumns[0]).toString();
+            } else {
+                String[] ids = new String[idColumns.length];
+                for (int i = 0; i < idColumns.length; i++) {
+                    ids[i] = flattenMap.get(idColumns[i]).toString();
+                }
+                documentId = String.join("-", ids);
+            }
 
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                // TODO: how to process this exception
-            } catch (IOException e) {
-                e.printStackTrace();
-                // TODO: do we need to close the client manually
-                // https://github.com/elastic/elasticsearch-java/issues/104
-                // TODO: DO we really need a elasticsearch-client? the httpClient is enough and we can control all behaviors as expected
+            if (documentId == null) {
+                throw new EspipeException("documentId must not be null");
             }
 
 
-        });
+            IndexRequest<JsonData> req;
+            req = IndexRequest.of(b -> {
+                        return b
+                                .index(indexName)
+                                .id(documentId)
+                                .withJson(new StringReader(json));
+                    }
+            );
+
+            // @version @timestamp, why logstash created index has these fields
+            // https://discuss.elastic.co/t/deleting-version-and-timestamp-fields-in-logstash-2-2-2/169475
+            IndexResponse res = esClient.index(req);
+
+            // _version in response
+            // https://www.elastic.co/blog/elasticsearch-versioning-support
+            System.out.println(res);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // TODO: how to process this exception
+        } catch (IOException e) {
+            e.printStackTrace();
+            // TODO: do we need to close the client manually
+            // https://github.com/elastic/elasticsearch-java/issues/104
+            // TODO: DO we really need a elasticsearch-client? the httpClient is enough and we can control all behaviors as expected
+        }
     }
 
     private String getSql(String sqlPath) {

@@ -1,1 +1,1 @@
-select * from nh_project
+select * from nh_project where coalesce(mod_date, create_date) < ?
