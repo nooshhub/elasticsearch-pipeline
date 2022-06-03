@@ -137,6 +137,7 @@ public class JdbcPipe {
      * sync data to index
      * @param indexConfig index config
      */
+    // todo this is supposed to be scheduled
     public void sync(Map<String, String> indexConfig) {
         String indexName = indexConfig.get("indexName");
         String syncSql = getSql(indexConfig.get("syncSqlPath"));
