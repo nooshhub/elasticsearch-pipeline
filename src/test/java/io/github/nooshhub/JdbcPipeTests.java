@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDateTime;
 
 /**
  * @author neals
@@ -16,6 +15,8 @@ import java.time.LocalDateTime;
 public class JdbcPipeTests {
 
     @Autowired
+    private ElasticsearchPipe elasticsearchPipe;
+    @Autowired
     private JdbcPipe jdbcPipe;
     @Autowired
     private EspipeSampleWorker espipeSampleWorker;
@@ -25,7 +26,7 @@ public class JdbcPipeTests {
         IndexConfigRegistry.getInstance()
                 .getIndexConfigs()
                 .forEach(indexConfig -> {
-                    jdbcPipe.createIndex(indexConfig);
+                    elasticsearchPipe.createIndex(indexConfig);
                     jdbcPipe.init(indexConfig);
                 });
     }
