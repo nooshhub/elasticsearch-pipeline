@@ -17,10 +17,13 @@
 
 package io.github.nooshhub;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,6 +32,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
@@ -47,6 +51,14 @@ public class JdbcPipe {
     @Autowired
     private EspipeElasticsearchProperties espipeElasticsearchProperties;
 
+    public void jdbcMetrics() {
+        // fetch size
+        System.out.printf("Fetch size %s, max rows %s, timeout %s%n", jdbcTemplate.getFetchSize(), jdbcTemplate.getMaxRows(), jdbcTemplate.getQueryTimeout());
+        // connection size and status
+        HikariDataSource ds = (HikariDataSource) jdbcTemplate.getDataSource();
+        System.out.println(ds);
+    }
+
     /**
      * init data to index
      * @param indexConfig index config
@@ -57,13 +69,19 @@ public class JdbcPipe {
 
         LocalDateTime currentRefreshTime = LocalDateTime.now();
         espipeTimer.reset(indexName, currentRefreshTime);
-        
+
+        jdbcMetrics();
+
+        StopWatch sw = new StopWatch();
+        sw.start();
         jdbcTemplate.query(initSql,
                 new Object[]{currentRefreshTime},
                 new int[]{JDBCType.TIMESTAMP.getVendorTypeNumber()},
                 rs -> {
                     createDocument(indexConfig, rs);
                 });
+        sw.stop();
+        System.out.println("total query " + sw.getTotalTimeSeconds());
     }
 
     /**
@@ -95,7 +113,7 @@ public class JdbcPipe {
             }
             return ps;
         }, rs -> {
-            createDocument(indexConfig, rs);
+             createDocument(indexConfig, rs);
         });
 
     }

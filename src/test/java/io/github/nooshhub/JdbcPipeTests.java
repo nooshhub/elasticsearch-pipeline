@@ -10,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @author neals
  * @since 5/31/2022
  */
-@SpringBootTest(properties = "spring.profiles.active:h2")
+@SpringBootTest(properties = "spring.profiles.active:oracle")
 public class JdbcPipeTests {
 
     @Autowired
