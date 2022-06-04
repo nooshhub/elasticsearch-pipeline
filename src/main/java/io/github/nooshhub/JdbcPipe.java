@@ -56,7 +56,8 @@ public class JdbcPipe {
         System.out.printf("Fetch size %s, max rows %s, timeout %s%n", jdbcTemplate.getFetchSize(), jdbcTemplate.getMaxRows(), jdbcTemplate.getQueryTimeout());
         // connection size and status
         HikariDataSource ds = (HikariDataSource) jdbcTemplate.getDataSource();
-        System.out.println(ds);
+        System.out.printf("datasource max pool size %s%n", ds.getMaximumPoolSize());
+        // System.out.println(ds.getHikariPoolMXBean().getActiveConnections());
     }
 
     /**
@@ -80,6 +81,7 @@ public class JdbcPipe {
                 rs -> {
                     createDocument(indexConfig, rs);
                 });
+
         sw.stop();
         System.out.println("total query " + sw.getTotalTimeSeconds());
     }
