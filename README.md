@@ -9,8 +9,19 @@ error: ORA-01489: result of string concatenation is too long
 ```
 co.elastic.clients.elasticsearch._types.ElasticsearchException: 
 [es/index] failed: [illegal_argument_exception] Limit of total fields [1000] has been exceeded
-```
-- case 3: data is missing by no reason while using logstash jdbc
+```                      
+based on this [discussion](https://discuss.elastic.co/t/approaches-to-deal-with-limit-of-total-fields-1000-in-index-has-been-exceeded/241039) we 
+provide a flag custom_in_one
+```yaml
+espipe:
+  elasticsearch:
+    # fields_mode: flatten, all_in_one, custom_in_one
+    fields_mode: custom_in_one
+``` 
+to use one field for all custom fields, let's call it custom_fields.
+
+- case 3: data is missing by no reason while using logstash jdbc     
+we will add log for each document 
 
 ### build
 ```bash

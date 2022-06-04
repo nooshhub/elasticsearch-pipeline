@@ -1,6 +1,7 @@
 package io.github.nooshhub;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class EspipeSampleWorker {
     private final static String INSERT = "insert into nh_project values (?, ?, ?, ?, ?)";
-
+    
+    @Value("${spring.profiles.active:h2}")
+    private String profile;
+    
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -26,19 +30,22 @@ public class EspipeSampleWorker {
 
     // TODO: schedule this to create data randomly
     public void create() {
-        List<Object[]> data = new ArrayList<>();
+        // ONLY create data for h2 database
+        if(profile.equals("h2")) {
+            List<Object[]> data = new ArrayList<>();
 
-        for (int i = 0; i < 10; i++) {
-            Object[] args = new Object[5];
-            args[0] = atomicInteger.incrementAndGet();
-            args[1] = "project " + args[0];
-            args[2] = "1,2,3";
-            args[3] = LocalDateTime.now();
-            args[4] = null;
-            data.add(args);
+            for (int i = 0; i < 10; i++) {
+                Object[] args = new Object[5];
+                args[0] = atomicInteger.incrementAndGet();
+                args[1] = "project " + args[0];
+                args[2] = "1,2,3";
+                args[3] = LocalDateTime.now();
+                args[4] = null;
+                data.add(args);
+            }
+            System.out.println("data from " + data.get(0)[0] + " is prepared");
+            jdbcTemplate.batchUpdate(INSERT, data);
         }
-        System.out.println("data from " + data.get(0)[0] + " is prepared");
-        jdbcTemplate.batchUpdate(INSERT, data);
     }
 
 }

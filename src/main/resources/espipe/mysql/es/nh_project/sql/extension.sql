@@ -1,0 +1,1 @@
+SELECT attribute_key, attribute_value FROM nh_property_attribute WHERE nh_project_id = ?

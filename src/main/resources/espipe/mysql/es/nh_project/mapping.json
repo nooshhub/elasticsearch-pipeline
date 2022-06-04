@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "nh_project_id": {
+      "type": "text"
+    },
+    "user_ids": {
+      "type": "text",
+      "analyzer": "comma_analyzer"
+    },
+    "create_date": {
+      "type": "date",
+      "format": "strict_date_time"
+    },
+    "mod_date": {
+      "type": "date",
+      "format": "strict_date_time"
+    }
+  }
+}

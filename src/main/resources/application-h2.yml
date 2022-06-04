@@ -8,5 +8,5 @@ spring:
     init:
       mode: embedded
       platform: h2
-      schema-locations: classpath:db/h2/schema.sql
-      data-locations: classpath:db/h2/data.sql
+      schema-locations: classpath:espipe/h2/schema.sql
+      data-locations: classpath:espipe/h2/data.sql

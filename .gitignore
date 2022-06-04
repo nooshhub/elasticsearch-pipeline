@@ -13,3 +13,6 @@ eclipsebin
 # target
 target
 */target
+
+# exclude produciton credentials
+application-oracle.yml

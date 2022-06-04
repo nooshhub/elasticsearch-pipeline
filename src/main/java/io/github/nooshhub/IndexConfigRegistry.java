@@ -1,5 +1,10 @@
 package io.github.nooshhub;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,25 +17,28 @@ import java.util.*;
  * @since 6/2/2022
  */
 // TODO: what about a resource loader to load resources instead?
+@Service
 public class IndexConfigRegistry {
+
+    @Value("${spring.profiles.active:h2}")
+    private String profile;
+
+    public static final String ROOT_DIR = "espipe/";
     public static final String INDEX_CONFIG_LOCATION = "es/";
-    private static final IndexConfigRegistry REGISTRY = new IndexConfigRegistry();
+
     private final List<Map<String, String>> configs = new ArrayList<>();
-
-    private IndexConfigRegistry(){
-        scanIndexConfig();
-    }
-
-    public static IndexConfigRegistry getInstance(){
-        return REGISTRY;
-    }
 
     public List<Map<String, String>> getIndexConfigs() {
         return configs;
     }
 
-    private void scanIndexConfig() {
-        List<String> indexNames = findIndexNames();
+    @PostConstruct
+    public void init() {
+        String rootDir = ROOT_DIR + profile + "/" + INDEX_CONFIG_LOCATION;
+
+        System.out.println("Scanning Index Config under " + rootDir);
+
+        List<String> indexNames = findIndexNames(rootDir);
 
         for (String indexName : indexNames) {
             Map<String, String> config = new HashMap<>();
@@ -38,18 +46,18 @@ public class IndexConfigRegistry {
 
             // 2 add child folder settings and mappings
             // TODO: validation: not found exception
-            config.put("indexSettingsPath", INDEX_CONFIG_LOCATION + indexName + "/settings.json");
-            config.put("indexMappingPath", INDEX_CONFIG_LOCATION + indexName + "/mapping.json");
+            config.put("indexSettingsPath", rootDir + indexName + "/settings.json");
+            config.put("indexMappingPath", rootDir + indexName + "/mapping.json");
 
             // 3 add sql folder's sql and sql.properties
             // TODO: validation: not found exception
-            config.put("initSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/init.sql");
-            config.put("syncSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/sync.sql");
-            config.put("deleteSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/delete.sql");
-            config.put("extensionSqlPath", INDEX_CONFIG_LOCATION + indexName + "/sql/extension.sql");
+            config.put("initSqlPath", rootDir + indexName + "/sql/init.sql");
+            config.put("syncSqlPath", rootDir + indexName + "/sql/sync.sql");
+            config.put("deleteSqlPath", rootDir + indexName + "/sql/delete.sql");
+            config.put("extensionSqlPath", rootDir + indexName + "/sql/extension.sql");
 
             // TODO: validation: not found exception
-            String sqlPropertiesPath = INDEX_CONFIG_LOCATION + indexName + "/sql/sql.properties";
+            String sqlPropertiesPath = rootDir + indexName + "/sql/sql.properties";
             Properties sqlProperties = new Properties();
             try (InputStream sqlPropertiesIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlPropertiesPath)) {
                 sqlProperties.load(sqlPropertiesIns);
@@ -65,12 +73,12 @@ public class IndexConfigRegistry {
 
     }
 
-    private List<String> findIndexNames() {
+    private List<String> findIndexNames(String rootDir) {
         File indexConfigRootDir = null;
         try {
-            final URL resource = getClass().getClassLoader().getResource(INDEX_CONFIG_LOCATION);
+            final URL resource = getClass().getClassLoader().getResource(rootDir);
             if (resource == null) {
-                throw new EspipeException("Root directory es is not found by " + INDEX_CONFIG_LOCATION);
+                throw new EspipeException("Directory is not found by " + rootDir);
             }
             indexConfigRootDir = new File(resource.toURI());
         } catch (URISyntaxException e) {
@@ -78,11 +86,12 @@ public class IndexConfigRegistry {
         }
 
         if (indexConfigRootDir == null) {
-            throw new EspipeException("Root directory es is not found by " + INDEX_CONFIG_LOCATION);
+            throw new EspipeException("Directory is not found by " + rootDir);
         }
 
         List<String> indexNames = new ArrayList<>();
         for (File indexConfigDir : indexConfigRootDir.listFiles()) {
+            System.out.println("Found index " + indexConfigDir.getName());
             indexNames.add(indexConfigDir.getName());
         }
         return indexNames;

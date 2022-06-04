@@ -10,10 +10,11 @@ import org.springframework.test.context.ActiveProfiles;
  * @author neals
  * @since 5/31/2022
  */
-@SpringBootTest
-@ActiveProfiles("h2")
+@SpringBootTest(properties = "spring.profiles.active:h2")
 public class JdbcPipeTests {
 
+    @Autowired
+    private IndexConfigRegistry indexConfigRegistry;
     @Autowired
     private ElasticsearchPipe elasticsearchPipe;
     @Autowired
@@ -23,8 +24,7 @@ public class JdbcPipeTests {
 
     @Test
     public void init() {
-        IndexConfigRegistry.getInstance()
-                .getIndexConfigs()
+        indexConfigRegistry.getIndexConfigs()
                 .forEach(indexConfig -> {
                     elasticsearchPipe.createIndex(indexConfig);
                     jdbcPipe.init(indexConfig);
@@ -33,8 +33,7 @@ public class JdbcPipeTests {
 
     @Test
     public void sync() {
-        IndexConfigRegistry.getInstance()
-                .getIndexConfigs()
+        indexConfigRegistry.getIndexConfigs()
                 .forEach(indexConfig -> {
                     espipeSampleWorker.create();
                     jdbcPipe.sync(indexConfig);

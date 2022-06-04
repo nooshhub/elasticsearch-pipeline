@@ -17,33 +17,18 @@
 
 package io.github.nooshhub;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.AcknowledgedResponse;
-import co.elastic.clients.elasticsearch._types.ElasticsearchException;
-import co.elastic.clients.elasticsearch.core.*;
-import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
-import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
-import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
-import co.elastic.clients.json.JsonData;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.sql.JDBCType;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -59,6 +44,8 @@ public class JdbcPipe {
     private ElasticsearchPipe elasticsearchPipe;
     @Autowired
     private EspipeTimer espipeTimer;
+    @Autowired
+    private EspipeElasticsearchProperties espipeElasticsearchProperties;
 
     /**
      * init data to index
@@ -93,12 +80,24 @@ public class JdbcPipe {
         LocalDateTime currentRefreshTime = LocalDateTime.now();
         espipeTimer.reset(indexName, currentRefreshTime);
 
-        jdbcTemplate.query(syncSql,
-                new Object[]{lastRefreshTime, currentRefreshTime},
-                new int[]{JDBCType.TIMESTAMP.getVendorTypeNumber(), JDBCType.TIMESTAMP.getVendorTypeNumber()},
-                rs -> {
-                    createDocument(indexConfig, rs);
-                });
+        jdbcTemplate.query(conn -> {
+            final PreparedStatement ps = conn.prepareStatement(syncSql);
+            ParameterMetaData parameterMetaData = ps.getParameterMetaData();
+            int paramCount = parameterMetaData.getParameterCount();
+            System.out.println("paramCount " + paramCount);
+
+            for (int i = 0; i < paramCount; i++) {
+                if (paramCount % 2 == 0) {
+                    ps.setTimestamp(i + 1, Timestamp.valueOf(lastRefreshTime));
+                } else {
+                    ps.setTimestamp(i + 1, Timestamp.valueOf(currentRefreshTime));
+                }
+            }
+            return ps;
+        }, rs -> {
+            createDocument(indexConfig, rs);
+        });
+
     }
 
     // TODO: create document one by one is slow, try batch update / es bulk api
@@ -120,16 +119,35 @@ public class JdbcPipe {
 
         // prepare custom fields
         if (extensionColumn != null && flattenMap.get(extensionColumn.toLowerCase()) != null) {
-            jdbcTemplate.query(extensionSql,
-                    new Object[]{flattenMap.get(extensionColumn)},
-                    new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
-                    prs -> {
-                        ResultSetMetaData prsMetaData = prs.getMetaData();
-                        int pcount = prsMetaData.getColumnCount();
-                        for (int i = 1; i <= pcount; i++) {
-                            flattenMap.put(prs.getString(1).toLowerCase(), prs.getObject(i));
-                        }
-                    });
+            if (EspipeFieldsMode.flatten.toString().equals(espipeElasticsearchProperties.getFieldsMode())) {
+                jdbcTemplate.query(extensionSql,
+                        new Object[]{flattenMap.get(extensionColumn)},
+                        new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
+                        prs -> {
+                            ResultSetMetaData prsMetaData = prs.getMetaData();
+                            int pcount = prsMetaData.getColumnCount();
+                            for (int i = 1; i <= pcount; i++) {
+                                 flattenMap.put(prs.getString(1).toLowerCase(), prs.getObject(2));
+                            }
+                        });
+            } else if (EspipeFieldsMode.custom_in_one.toString().equals(espipeElasticsearchProperties.getFieldsMode())) {
+                StringBuilder sb = new StringBuilder();
+                jdbcTemplate.query(extensionSql,
+                        new Object[]{flattenMap.get(extensionColumn)},
+                        new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
+                        prs -> {
+                            ResultSetMetaData prsMetaData = prs.getMetaData();
+                            int pcount = prsMetaData.getColumnCount();
+                            for (int i = 1; i <= pcount; i++) {
+                                sb.append(prs.getString(1).toLowerCase());
+                                sb.append(" ");
+                                sb.append(prs.getObject(2));
+                                sb.append(" ");
+                            }
+                        });
+                flattenMap.put("custom_fields", sb.toString());
+            }
+
         }
 
         elasticsearchPipe.createDocument(indexName, idColumns, flattenMap);

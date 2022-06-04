@@ -3,6 +3,10 @@ espipe:
     host: localhost
     port: 9200
     protocol: http
+    # fields_mode: flatten[default], custom_in_one, all_in_one[not support yet]
+    fields_mode: flatten
+
+
 
 # improve fetch data from database performance
 #spring.datasource.hikari.auto-commit: false

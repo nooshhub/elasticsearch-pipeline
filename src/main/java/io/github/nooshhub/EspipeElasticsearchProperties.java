@@ -13,6 +13,7 @@ public class EspipeElasticsearchProperties {
     private String host;
     private int port;
     private String protocol;
+    private String fieldsMode;
 
     public String getHost() {
         return host;
@@ -36,5 +37,13 @@ public class EspipeElasticsearchProperties {
 
     public void setProtocol(String protocol) {
         this.protocol = protocol;
+    }
+
+    public String getFieldsMode() {
+        return fieldsMode;
+    }
+
+    public void setFieldsMode(String fieldsMode) {
+        this.fieldsMode = fieldsMode;
     }
 }
