@@ -19,6 +19,7 @@ package io.github.nooshhub;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Main Entry
@@ -26,6 +27,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Neal Shan
  * @since 0.0.1
  */
+@EnableScheduling
 @SpringBootApplication
 public class App {
 

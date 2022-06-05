@@ -6,8 +6,10 @@ espipe:
     # fields_mode: flatten, custom_in_one[default], all_in_one[not support yet]
     fields_mode: custom_in_one
 
-# improve fetch data from database performance
-#spring.datasource.hikari.auto-commit: false
-# save 50% of performance by set fetch-size to 100, default is 10, 100k is reduced 7s to 3.5s
-spring.jdbc.template.fetch-size: 100
+spring:
+  # improve fetch data from database performance
+  # datasource.hikari.auto-commit: false
+  # save 50% of performance by set fetch-size to 100, default is 10, 100k is reduced 7s to 3.5s
+  jdbc.template.fetch-size: 100
+  task.scheduling.pool.size: 4
 

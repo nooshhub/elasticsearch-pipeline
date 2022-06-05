@@ -10,3 +10,5 @@ spring:
       platform: h2
       schema-locations: classpath:espipe/h2/schema.sql
       data-locations: classpath:espipe/h2/data.sql
+
+#TODO set log level to debug

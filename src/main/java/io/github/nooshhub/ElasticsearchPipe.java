@@ -180,7 +180,8 @@ public class ElasticsearchPipe {
             });
 
             BulkResponse bulkRes = esClient.bulk(bulkRequest);
-
+            LOG.info(bulkRes.toString());
+            
         } catch (IOException e) {
             e.printStackTrace();
         }

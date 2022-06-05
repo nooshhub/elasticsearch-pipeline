@@ -31,6 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.text.SimpleDateFormat;
+
 /**
  * Elasticsearch Java client Configuration
  *
@@ -45,7 +47,8 @@ public class ElasticsearchConfiguration {
 
     /**
      * create a ElasticsearchClient java bean
-     * @return
+     *
+     * @return ElasticsearchClient java bean
      */
     @Bean
     public ElasticsearchClient esClient() {
@@ -75,6 +78,7 @@ public class ElasticsearchConfiguration {
 
         // Create the transport with a Jackson mapper
         final JacksonJsonpMapper mapper = new JacksonJsonpMapper();
+        mapper.objectMapper().setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
         ElasticsearchTransport transport = new RestClientTransport(
                 restClient, mapper);
 

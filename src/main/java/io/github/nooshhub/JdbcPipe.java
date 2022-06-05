@@ -68,6 +68,9 @@ public class JdbcPipe {
      * @param indexConfig index config
      */
     public void init(Map<String, String> indexConfig) {
+
+        elasticsearchPipe.createIndex(indexConfig);
+
         String indexName = indexConfig.get("indexName");
         String initSql = indexConfig.get("initSql");
 
@@ -78,7 +81,7 @@ public class JdbcPipe {
 
         StopWatch sw = new StopWatch();
         sw.start();
-        
+
         List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
         jdbcTemplate.query(initSql,
                 new Object[]{currentRefreshTime},
@@ -90,6 +93,7 @@ public class JdbcPipe {
                     // send per jdbcTemplate.getFetchSize()
                     boolean isSend = (rs.getRow() % jdbcTemplate.getFetchSize() == 0);
                     if (isSend) {
+                        LOG.info("index data size {}", flattenMapList.size());
                         extendFlattenMap(indexConfig, flattenMapList);
                         elasticsearchPipe.createDocument(indexConfig, flattenMapList);
                         flattenMapList.clear();
@@ -99,6 +103,7 @@ public class JdbcPipe {
 
         // process the rest of data, like we have total 108538, the above will process 108500, the rest 38 will be processed here
         if (flattenMapList.size() > 0) {
+            LOG.info("index data size {}", flattenMapList.size());
             extendFlattenMap(indexConfig, flattenMapList);
             elasticsearchPipe.createDocument(indexConfig, flattenMapList);
             flattenMapList.clear();
@@ -113,14 +118,19 @@ public class JdbcPipe {
      *
      * @param indexConfig index config
      */
-    // todo this is supposed to be scheduled
     public void sync(Map<String, String> indexConfig) {
         String indexName = indexConfig.get("indexName");
         String syncSql = indexConfig.get("syncSql");
 
         // get the last refresh time from the database
         LocalDateTime lastRefreshTime = espipeTimer.findLastRefreshTime(indexName);
+        if (lastRefreshTime == null) {
+            throw new EspipeException("Please init index " + indexName + " first.");
+        }
+
         LocalDateTime currentRefreshTime = LocalDateTime.now();
+        LOG.info("syncing data for index {} from {} to {}", indexName, Timestamp.valueOf(lastRefreshTime), Timestamp.valueOf(currentRefreshTime));
+
         espipeTimer.reset(indexName, currentRefreshTime);
 
         List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
@@ -145,6 +155,7 @@ public class JdbcPipe {
         });
 
         if (flattenMapList.size() > 0) {
+            LOG.info("syncing data for index {} size {}", indexName, flattenMapList.size());
             extendFlattenMap(indexConfig, flattenMapList);
             elasticsearchPipe.createDocument(indexConfig, flattenMapList);
             flattenMapList.clear();

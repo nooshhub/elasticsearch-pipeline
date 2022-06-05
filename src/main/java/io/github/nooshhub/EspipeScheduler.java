@@ -17,37 +17,34 @@
 
 package io.github.nooshhub;
 
-import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 /**
- * Unit tests for {@link JdbcPipeTests}
+ * Espipe Scheduler is used to trigger synchronization task
  *
  * @author neals
- * @since 5/31/2022
+ * @since 6/4/2022
  */
-@SpringBootTest(properties = "spring.profiles.active:h2")
-public class JdbcPipeTests {
+@Service
+public class EspipeScheduler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EspipeSampleWorker.class);
 
     @Autowired
     private IndexConfigRegistry indexConfigRegistry;
     @Autowired
     private JdbcPipe jdbcPipe;
 
-    @Test
-    public void init() {
-        indexConfigRegistry.getIndexConfigs()
-                .forEach(indexConfig -> {
-                    jdbcPipe.init(indexConfig);
-                });
-    }
-
-    @Test
+    @Scheduled(fixedRate = 5000)
     public void sync() {
         indexConfigRegistry.getIndexConfigs()
                 .forEach(indexConfig -> {
                     jdbcPipe.sync(indexConfig);
                 });
+
     }
 }

@@ -19,6 +19,7 @@ package io.github.nooshhub;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +43,9 @@ public class IndexConfigRegistry {
     @Value("${spring.profiles.active:h2}")
     private String profile;
 
+    @Autowired
+    private JdbcPipe jdbcPipe;
+
     public static final String ROOT_DIR = "espipe/";
     public static final String INDEX_CONFIG_LOCATION = "es/";
 
@@ -53,6 +57,17 @@ public class IndexConfigRegistry {
 
     @PostConstruct
     public void init() {
+        scanIndexConfigs();
+
+        if (profile.equals("h2")) {
+            getIndexConfigs()
+                    .forEach(indexConfig -> {
+                        jdbcPipe.init(indexConfig);
+                    });
+        }
+    }
+
+    private void scanIndexConfigs() {
         String rootDir = ROOT_DIR + profile + "/" + INDEX_CONFIG_LOCATION;
 
         LOG.info("Scanning Index Config under {}", rootDir);
@@ -67,7 +82,7 @@ public class IndexConfigRegistry {
             config.put("indexSettingsPath", rootDir + indexName + "/settings.json");
             config.put("indexMappingPath", rootDir + indexName + "/mapping.json");
 
-            // add sql 
+            // add sql
             config.put("initSql", IOUtils.getContent(rootDir + indexName + "/sql/init.sql"));
             config.put("syncSql", IOUtils.getContent(rootDir + indexName + "/sql/sync.sql"));
             config.put("deleteSql", IOUtils.getContent(rootDir + indexName + "/sql/delete.sql"));
@@ -86,7 +101,6 @@ public class IndexConfigRegistry {
 
             configs.add(config);
         }
-
     }
 
     private List<String> findIndexNames(String rootDir) {
