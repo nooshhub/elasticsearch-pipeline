@@ -17,6 +17,8 @@
 
 package io.github.nooshhub;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,8 @@ import java.util.*;
 @Service
 public class IndexConfigRegistry {
 
+    private static final Logger LOG = LoggerFactory.getLogger(IndexConfigRegistry.class);
+
     @Value("${spring.profiles.active:h2}")
     private String profile;
 
@@ -51,7 +55,7 @@ public class IndexConfigRegistry {
     public void init() {
         String rootDir = ROOT_DIR + profile + "/" + INDEX_CONFIG_LOCATION;
 
-        System.out.println("Scanning Index Config under " + rootDir);
+        LOG.info("Scanning Index Config under {}", rootDir);
 
         List<String> indexNames = findIndexNames(rootDir);
 
@@ -103,7 +107,7 @@ public class IndexConfigRegistry {
 
         List<String> indexNames = new ArrayList<>();
         for (File indexConfigDir : indexConfigRootDir.listFiles()) {
-            System.out.println("Found index " + indexConfigDir.getName());
+            LOG.info("Found index {}", indexConfigDir.getName());
             indexNames.add(indexConfigDir.getName());
         }
         return indexNames;

@@ -30,6 +30,8 @@ import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
 import co.elastic.clients.json.JsonData;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -61,6 +63,8 @@ import java.util.Map;
 @Service
 public class ElasticsearchPipe {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchPipe.class);
+
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -81,11 +85,11 @@ public class ElasticsearchPipe {
             // Delete index must be synchronized
             AcknowledgedResponse deleteIndexResponse = esClient.indices().delete(DeleteIndexRequest.of(b -> b.index(indexName)));
             if (deleteIndexResponse.acknowledged()) {
-                System.out.println("Index is deleted");
+                LOG.info("Index {} is deleted", indexName);
             }
         } catch (ElasticsearchException exception) {
             if (exception.status() == HttpStatus.NOT_FOUND.value()) {
-                System.out.println("Index is not exist, no operation");
+                LOG.info("Index {} is not exist, no operation", indexName);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -97,7 +101,7 @@ public class ElasticsearchPipe {
             esClient.indices().create(CreateIndexRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexSettingIns)));
-            System.out.println("Index is created");
+            LOG.info("Index {} is created", indexName);
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -108,7 +112,7 @@ public class ElasticsearchPipe {
             esClient.indices().putMapping(PutMappingRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexMappingIns)));
-            System.out.println("Index mapping is updated");
+            LOG.info("Index {} mapping is updated", indexName);
         } catch (IOException e) {
             e.printStackTrace();
         }

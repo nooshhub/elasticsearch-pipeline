@@ -18,6 +18,8 @@
 package io.github.nooshhub;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,9 @@ import java.util.Map;
  */
 @Service
 public class JdbcPipe {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JdbcPipe.class);
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -50,11 +55,11 @@ public class JdbcPipe {
 
     public void jdbcMetrics() {
         // fetch size
-        System.out.printf("Fetch size %s, max rows %s, timeout %s%n", jdbcTemplate.getFetchSize(), jdbcTemplate.getMaxRows(), jdbcTemplate.getQueryTimeout());
+        LOG.info("Fetch size {}, max rows {}, query timeout {}", jdbcTemplate.getFetchSize(), jdbcTemplate.getMaxRows(), jdbcTemplate.getQueryTimeout());
         // connection size and status
         HikariDataSource ds = (HikariDataSource) jdbcTemplate.getDataSource();
-        System.out.printf("datasource max pool size %s%n", ds.getMaximumPoolSize());
-        // System.out.println(ds.getHikariPoolMXBean().getActiveConnections());
+        LOG.info("datasource max pool size {}", ds.getMaximumPoolSize());
+        // LOG.info("datasource active connections size {}" , ds.getHikariPoolMXBean().getActiveConnections());
     }
 
     /**
@@ -73,6 +78,7 @@ public class JdbcPipe {
 
         StopWatch sw = new StopWatch();
         sw.start();
+        
         List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
         jdbcTemplate.query(initSql,
                 new Object[]{currentRefreshTime},
@@ -99,7 +105,7 @@ public class JdbcPipe {
         }
 
         sw.stop();
-        System.out.println("total query " + sw.getTotalTimeSeconds());
+        LOG.info("Total time: {}s", sw.getTotalTimeSeconds());
     }
 
     /**

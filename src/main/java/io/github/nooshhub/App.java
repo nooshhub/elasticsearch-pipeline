@@ -17,23 +17,24 @@
 
 package io.github.nooshhub;
 
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Main Entry
- * 
+ *
  * @author Neal Shan
  * @since 0.0.1
  */
 @SpringBootApplication
 public class App {
 
-	/**
-	 * main method.
-	 *
-	 * @param args input arguments
-	 */
-	public static void main(String[] args) {
-		System.out.println("Hello");
-	}
+    /**
+     * main method.
+     *
+     * @param args input arguments
+     */
+    public static void main(String[] args) {
+        SpringApplication.run(App.class, args);
+    }
 }

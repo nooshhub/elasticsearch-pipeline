@@ -17,6 +17,8 @@
 
 package io.github.nooshhub;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,6 +37,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class EspipeSampleWorker {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EspipeSampleWorker.class);
+
     private final static String INSERT = "insert into nh_project values (?, ?, ?, ?, ?)";
 
     @Value("${spring.profiles.active:h2}")
@@ -60,7 +65,7 @@ public class EspipeSampleWorker {
                 args[4] = null;
                 data.add(args);
             }
-            // System.out.println("data from " + data.get(0)[0] + " is prepared");
+            LOG.debug("data from {} is prepared", data.get(0)[0]);
             jdbcTemplate.batchUpdate(INSERT, data);
         }
     }
