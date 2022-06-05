@@ -3,8 +3,11 @@ package io.github.nooshhub;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.AcknowledgedResponse;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
@@ -18,6 +21,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,6 +39,7 @@ public class ElasticsearchPipe {
 
     /**
      * create index
+     *
      * @param indexConfig index config
      */
     public void createIndex(Map<String, String> indexConfig) {
@@ -84,7 +90,16 @@ public class ElasticsearchPipe {
     }
 
 
-    public void createDocument(String indexName, String[] idColumns, Map<String, Object> flattenMap) {
+    /**
+     * create one document
+     *
+     * @param indexConfig index Config
+     * @param flattenMap  flatten Map
+     */
+    public void createDocument(Map<String, String> indexConfig, Map<String, Object> flattenMap) {
+        String indexName = indexConfig.get("indexName");
+        String[] idColumns = indexConfig.get("idColumns").split(",");
+
         try {
             // convert to json
             final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
@@ -123,6 +138,67 @@ public class ElasticsearchPipe {
             // _version in response
             // https://www.elastic.co/blog/elasticsearch-versioning-support
             System.out.println(res);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // TODO: how to process this exception
+        } catch (IOException e) {
+            e.printStackTrace();
+            // TODO: do we need to close the client manually
+            // https://github.com/elastic/elasticsearch-java/issues/104
+            // TODO: DO we really need a elasticsearch-client? the httpClient is enough and we can control all behaviors as expected
+        }
+    }
+
+    /**
+     * create multiple document
+     *
+     * @param indexConfig    index Config
+     * @param flattenMapList flatten Map list
+     */
+    public void createDocument(Map<String, String> indexConfig, List<Map<String, Object>> flattenMapList) {
+        String indexName = indexConfig.get("indexName");
+        String[] idColumns = indexConfig.get("idColumns").split(",");
+
+        try {
+
+            List<BulkOperation> bulkOperations = new ArrayList<>();
+
+            for (Map<String, Object> flattenMap : flattenMapList) {
+                // load id from config, support columns combination strategy as id
+                final String documentId;
+                if (idColumns.length == 1) {
+                    documentId = flattenMap.get(idColumns[0]).toString();
+                } else {
+                    String[] ids = new String[idColumns.length];
+                    for (int i = 0; i < idColumns.length; i++) {
+                        ids[i] = flattenMap.get(idColumns[i]).toString();
+                    }
+                    documentId = String.join("-", ids);
+                }
+
+                if (documentId == null) {
+                    throw new EspipeException("documentId must not be null");
+                }
+
+                BulkOperation bulkOperation = BulkOperation.of(b -> {
+                    return b.create(c -> {
+                        return c.index(indexName)
+                                .id(documentId)
+                                .document(flattenMap)
+                                ;
+                    });
+                });
+                bulkOperations.add(bulkOperation);
+            }
+
+            BulkRequest bulkRequest = BulkRequest.of(b -> {
+                return b.operations(bulkOperations);
+            });
+
+            BulkResponse bulkRes = esClient.bulk(bulkRequest);
+            System.out.println(bulkRes);
+
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();

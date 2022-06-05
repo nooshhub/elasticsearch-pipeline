@@ -30,7 +30,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -62,6 +64,7 @@ public class JdbcPipe {
 
     /**
      * init data to index
+     *
      * @param indexConfig index config
      */
     public void init(Map<String, String> indexConfig) {
@@ -75,12 +78,30 @@ public class JdbcPipe {
 
         StopWatch sw = new StopWatch();
         sw.start();
+        List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
         jdbcTemplate.query(initSql,
                 new Object[]{currentRefreshTime},
                 new int[]{JDBCType.TIMESTAMP.getVendorTypeNumber()},
                 rs -> {
-                    createDocument(indexConfig, rs);
+                    Map<String, Object> flattenMap = createStandardFlattenMap(rs);
+                    flattenMapList.add(flattenMap);
+
+                    // send per jdbcTemplate.getFetchSize()
+                    boolean isSend = (rs.getRow() % jdbcTemplate.getFetchSize() == 0);
+                    if (isSend) {
+                        extendFlattenMap(indexConfig, flattenMapList);
+                        elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+                        flattenMapList.clear();
+                    }
+
                 });
+
+        // process the rest of data, like we have total 108538, the above will process 108500, the rest 38 will be processed here
+        if (flattenMapList.size() > 0) {
+            extendFlattenMap(indexConfig, flattenMapList);
+            elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+            flattenMapList.clear();
+        }
 
         sw.stop();
         System.out.println("total query " + sw.getTotalTimeSeconds());
@@ -88,6 +109,7 @@ public class JdbcPipe {
 
     /**
      * sync data to index
+     *
      * @param indexConfig index config
      */
     // todo this is supposed to be scheduled
@@ -100,12 +122,13 @@ public class JdbcPipe {
         LocalDateTime currentRefreshTime = LocalDateTime.now();
         espipeTimer.reset(indexName, currentRefreshTime);
 
+        List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
         jdbcTemplate.query(conn -> {
             final PreparedStatement ps = conn.prepareStatement(syncSql);
             ParameterMetaData parameterMetaData = ps.getParameterMetaData();
             int paramCount = parameterMetaData.getParameterCount();
-            System.out.println("paramCount " + paramCount);
 
+            // the param count is depend on the sql, it should be even and is a pair of start and end timestamp.
             for (int i = 0; i < paramCount; i++) {
                 if (paramCount % 2 == 0) {
                     ps.setTimestamp(i + 1, Timestamp.valueOf(lastRefreshTime));
@@ -113,21 +136,28 @@ public class JdbcPipe {
                     ps.setTimestamp(i + 1, Timestamp.valueOf(currentRefreshTime));
                 }
             }
+            
             return ps;
         }, rs -> {
-             createDocument(indexConfig, rs);
+            Map<String, Object> flattenMap = createStandardFlattenMap(rs);
+            flattenMapList.add(flattenMap);
         });
 
+        if (flattenMapList.size() > 0) {
+            extendFlattenMap(indexConfig, flattenMapList);
+            elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+            flattenMapList.clear();
+        }
     }
 
-    // TODO: create document one by one is slow, try batch update / es bulk api
-    private void createDocument(Map<String, String> indexConfig, ResultSet rs) throws SQLException {
-        String indexName = indexConfig.get("indexName");
-        String extensionColumn = indexConfig.get("extensionColumn");
-        String extensionSql = getSql(indexConfig.get("extensionSqlPath"));
-        String[] idColumns = indexConfig.get("idColumns").split(",");
-
-        // put stand fields and custom fields in flattenMap
+    /**
+     * put stand fields in flattenMap
+     *
+     * @param rs result set
+     * @return flatten map
+     * @throws SQLException all sql exception
+     */
+    private Map<String, Object> createStandardFlattenMap(ResultSet rs) throws SQLException {
         Map<String, Object> flattenMap = new HashMap<>();
 
         // prepare standard fields
@@ -137,41 +167,81 @@ public class JdbcPipe {
             flattenMap.put(rsMetaData.getColumnName(i).toLowerCase(), rs.getObject(i));
         }
 
-        // prepare custom fields
-        if (extensionColumn != null && flattenMap.get(extensionColumn.toLowerCase()) != null) {
-            if (EspipeFieldsMode.flatten.toString().equals(espipeElasticsearchProperties.getFieldsMode())) {
-                jdbcTemplate.query(extensionSql,
-                        new Object[]{flattenMap.get(extensionColumn)},
-                        new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
-                        prs -> {
-                            ResultSetMetaData prsMetaData = prs.getMetaData();
-                            int pcount = prsMetaData.getColumnCount();
-                            for (int i = 1; i <= pcount; i++) {
-                                 flattenMap.put(prs.getString(1).toLowerCase(), prs.getObject(2));
-                            }
-                        });
-            } else if (EspipeFieldsMode.custom_in_one.toString().equals(espipeElasticsearchProperties.getFieldsMode())) {
-                StringBuilder sb = new StringBuilder();
-                jdbcTemplate.query(extensionSql,
-                        new Object[]{flattenMap.get(extensionColumn)},
-                        new int[]{JDBCType.NUMERIC.getVendorTypeNumber()},
-                        prs -> {
-                            ResultSetMetaData prsMetaData = prs.getMetaData();
-                            int pcount = prsMetaData.getColumnCount();
-                            for (int i = 1; i <= pcount; i++) {
-                                sb.append(prs.getString(1).toLowerCase());
-                                sb.append(" ");
-                                sb.append(prs.getObject(2));
-                                sb.append(" ");
-                            }
-                        });
-                flattenMap.put("custom_fields", sb.toString());
-            }
+        return flattenMap;
+    }
 
+    /**
+     * put custom fields in flattenMap
+     *
+     * @param indexConfig index config
+     * @param flattenMapList flatten Map List
+     */
+    private void extendFlattenMap(Map<String, String> indexConfig, List<Map<String, Object>> flattenMapList) {
+        String extensionColumn = indexConfig.get("extensionColumn");
+        String extensionSql = getSql(indexConfig.get("extensionSqlPath"));
+
+        List<String> extensionIds = new ArrayList<>(100);
+        for (Map<String, Object> flattenMap : flattenMapList) {
+            if (extensionColumn != null && flattenMap.get(extensionColumn.toLowerCase()) != null) {
+                extensionIds.add(String.valueOf(flattenMap.get(extensionColumn.toLowerCase())));
+            }
         }
 
-        elasticsearchPipe.createDocument(indexName, idColumns, flattenMap);
+        if (extensionIds.size() > 0) {
+            extensionSql = extensionSql.replace("?", String.join(",", extensionIds));
+            if (EspipeFieldsMode.flatten.toString().equals(espipeElasticsearchProperties.getFieldsMode())) {
+
+                Map<String, Map<String, Object>> customIdToCustomFlattenMap = new HashMap<>();
+
+                jdbcTemplate.query(extensionSql,
+                        prs -> {
+                            ResultSetMetaData prsMetaData = prs.getMetaData();
+                            int pcount = prsMetaData.getColumnCount();
+                            for (int i = 1; i <= pcount; i++) {
+                                Map<String, Object> flattenMap = customIdToCustomFlattenMap.getOrDefault(prs.getString(1), new HashMap<>());
+                                flattenMap.put(prs.getString(2).toLowerCase(), prs.getObject(3));
+                                customIdToCustomFlattenMap.put(prs.getString(1), flattenMap);
+                            }
+                        });
+
+                for (Map<String, Object> flattenMap : flattenMapList) {
+                    if (extensionColumn != null && flattenMap.get(extensionColumn.toLowerCase()) != null) {
+                        final Map<String, Object> customFlattenMap = customIdToCustomFlattenMap.get(String.valueOf(flattenMap.get(extensionColumn.toLowerCase())));
+                        if (customFlattenMap != null) {
+                            flattenMap.putAll(customFlattenMap);
+                        }
+                    }
+                }
+            } else if (EspipeFieldsMode.custom_in_one.toString().equals(espipeElasticsearchProperties.getFieldsMode())) {
+                Map<Object, StringBuilder> customIdToSbMap = new HashMap<>();
+
+                jdbcTemplate.query(extensionSql,
+                        prs -> {
+                            ResultSetMetaData prsMetaData = prs.getMetaData();
+                            int pcount = prsMetaData.getColumnCount();
+                            for (int i = 1; i <= pcount; i++) {
+                                StringBuilder sb = customIdToSbMap.getOrDefault(prs.getString(1), new StringBuilder());
+                                sb.append(prs.getString(2).toLowerCase());
+                                sb.append(" ");
+                                sb.append(prs.getObject(3));
+                                sb.append(" ");
+                                customIdToSbMap.put(prs.getString(1), sb);
+                            }
+                        });
+
+                for (Map<String, Object> flattenMap : flattenMapList) {
+                    if (extensionColumn != null && flattenMap.get(extensionColumn.toLowerCase()) != null) {
+                        final StringBuilder customSb = customIdToSbMap.get(String.valueOf(flattenMap.get(extensionColumn.toLowerCase())));
+                        if (customSb != null) {
+                            flattenMap.put("custom_fields", customSb.toString());
+                        }
+                    }
+                }
+            }
+        }
+
     }
+
 
     private String getSql(String sqlPath) {
         // TODO: optimize io speed and put it in cache
