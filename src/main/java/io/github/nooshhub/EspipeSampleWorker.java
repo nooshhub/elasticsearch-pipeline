@@ -56,7 +56,7 @@ public class EspipeSampleWorker {
     // preserve id form 1 to 9 to manually create data
     private final AtomicInteger atomicInteger = new AtomicInteger(10);
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 5000)
     public void create() {
         List<Object[]> data = new ArrayList<>();
 
@@ -68,7 +68,7 @@ public class EspipeSampleWorker {
             args[3] = LocalDateTime.now();
             args[4] = null;
             try {
-                Thread.sleep(1000);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

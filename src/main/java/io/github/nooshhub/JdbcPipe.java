@@ -58,7 +58,7 @@ public class JdbcPipe {
         LOG.info("Fetch size {}, max rows {}, query timeout {}", jdbcTemplate.getFetchSize(), jdbcTemplate.getMaxRows(), jdbcTemplate.getQueryTimeout());
         // connection size and status
         HikariDataSource ds = (HikariDataSource) jdbcTemplate.getDataSource();
-        LOG.info("datasource max pool size {}", ds.getMaximumPoolSize());
+        LOG.info("datasource max pool size {} auto commit {}", ds.getMaximumPoolSize(), ds.isAutoCommit());
         // LOG.info("datasource active connections size {}" , ds.getHikariPoolMXBean().getActiveConnections());
     }
 
@@ -129,24 +129,26 @@ public class JdbcPipe {
         }
 
         LocalDateTime currentRefreshTime = LocalDateTime.now();
-        LOG.info("syncing data for index {} from {} to {}", indexName, Timestamp.valueOf(lastRefreshTime), Timestamp.valueOf(currentRefreshTime));
 
         espipeTimer.reset(indexName, currentRefreshTime);
 
         List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
         jdbcTemplate.query(conn -> {
+            LocalDateTime decreasedLastRefreshTime = lastRefreshTime; // .minusSeconds(20)
+
             final PreparedStatement ps = conn.prepareStatement(syncSql);
             ParameterMetaData parameterMetaData = ps.getParameterMetaData();
             int paramCount = parameterMetaData.getParameterCount();
-
             // the param count is depend on the sql, it should be even and is a pair of start and end timestamp.
             for (int i = 0; i < paramCount; i++) {
                 if (paramCount % 2 == 0) {
-                    ps.setTimestamp(i + 1, Timestamp.valueOf(lastRefreshTime));
+                    ps.setTimestamp(i + 1, Timestamp.valueOf(decreasedLastRefreshTime));
                 } else {
                     ps.setTimestamp(i + 1, Timestamp.valueOf(currentRefreshTime));
                 }
             }
+
+            LOG.info("syncing data for index {} from {} to {}", indexName, Timestamp.valueOf(decreasedLastRefreshTime), Timestamp.valueOf(currentRefreshTime));
 
             return ps;
         }, rs -> {
