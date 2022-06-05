@@ -20,7 +20,8 @@ package io.github.nooshhub;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Test.
+ * Main Entry
+ * 
  * @author Neal Shan
  * @since 0.0.1
  */

@@ -1,3 +1,20 @@
+/*
+ *  Copyright 2021-2022 the original author or authors.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *         https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
 package io.github.nooshhub;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -12,7 +29,6 @@ import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
 import co.elastic.clients.json.JsonData;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +42,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Elasticsearch Pipe, create, update, delete index or document
+ * <p>
+ * Document's difference between espipe and logstash
+ * 1. why logstash created index has these fields @version @timestamp
+ * https://discuss.elastic.co/t/deleting-version-and-timestamp-fields-in-logstash-2-2-2/169475
+ * <p>
+ * Known issues:
+ * https://github.com/elastic/elasticsearch-java/issues/104
+ * <p>
+ * Something to know:
+ * 1. _version in response
+ * https://www.elastic.co/blog/elasticsearch-versioning-support
+ *
  * @author neals
  * @since 6/3/2022
  */
@@ -60,9 +89,10 @@ public class ElasticsearchPipe {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
 
-        try (InputStream indexSettingIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(settingsPath)) {
+        try (InputStream indexSettingIns = IOUtils.getInputStream(settingsPath)) {
             // create index with settings
             esClient.indices().create(CreateIndexRequest.of(b -> b
                     .index(indexName)
@@ -70,12 +100,10 @@ public class ElasticsearchPipe {
             System.out.println("Index is created");
         } catch (IOException e) {
             e.printStackTrace();
-            // TODO: do we need to close the client manually
-            // https://github.com/elastic/elasticsearch-java/issues/104
-            // TODO: DO we really need a elasticsearch-client? the httpClient is enough and we can control all behaviors as expected
+            return;
         }
 
-        try (InputStream indexMappingIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(mappingPath)) {
+        try (InputStream indexMappingIns = IOUtils.getInputStream(mappingPath)) {
             // update index mapping
             esClient.indices().putMapping(PutMappingRequest.of(b -> b
                     .index(indexName)
@@ -83,9 +111,6 @@ public class ElasticsearchPipe {
             System.out.println("Index mapping is updated");
         } catch (IOException e) {
             e.printStackTrace();
-            // TODO: do we need to close the client manually
-            // https://github.com/elastic/elasticsearch-java/issues/104
-            // TODO: DO we really need a elasticsearch-client? the httpClient is enough and we can control all behaviors as expected
         }
     }
 
@@ -98,29 +123,10 @@ public class ElasticsearchPipe {
      */
     public void createDocument(Map<String, String> indexConfig, Map<String, Object> flattenMap) {
         String indexName = indexConfig.get("indexName");
-        String[] idColumns = indexConfig.get("idColumns").split(",");
 
         try {
-            // convert to json
             final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
-            System.out.println(json);
-
-            // load id from config, support columns combination strategy as id
-            final String documentId;
-            if (idColumns.length == 1) {
-                documentId = flattenMap.get(idColumns[0]).toString();
-            } else {
-                String[] ids = new String[idColumns.length];
-                for (int i = 0; i < idColumns.length; i++) {
-                    ids[i] = flattenMap.get(idColumns[i]).toString();
-                }
-                documentId = String.join("-", ids);
-            }
-
-            if (documentId == null) {
-                throw new EspipeException("documentId must not be null");
-            }
-
+            final String documentId = getDocumentId(indexConfig, flattenMap);
 
             IndexRequest<JsonData> req;
             req = IndexRequest.of(b -> {
@@ -131,24 +137,13 @@ public class ElasticsearchPipe {
                     }
             );
 
-            // @version @timestamp, why logstash created index has these fields
-            // https://discuss.elastic.co/t/deleting-version-and-timestamp-fields-in-logstash-2-2-2/169475
             IndexResponse res = esClient.index(req);
 
-            // _version in response
-            // https://www.elastic.co/blog/elasticsearch-versioning-support
-            System.out.println(res);
-
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            // TODO: how to process this exception
         } catch (IOException e) {
             e.printStackTrace();
-            // TODO: do we need to close the client manually
-            // https://github.com/elastic/elasticsearch-java/issues/104
-            // TODO: DO we really need a elasticsearch-client? the httpClient is enough and we can control all behaviors as expected
         }
     }
+
 
     /**
      * create multiple document
@@ -158,28 +153,12 @@ public class ElasticsearchPipe {
      */
     public void createDocument(Map<String, String> indexConfig, List<Map<String, Object>> flattenMapList) {
         String indexName = indexConfig.get("indexName");
-        String[] idColumns = indexConfig.get("idColumns").split(",");
 
         try {
-
             List<BulkOperation> bulkOperations = new ArrayList<>();
 
             for (Map<String, Object> flattenMap : flattenMapList) {
-                // load id from config, support columns combination strategy as id
-                final String documentId;
-                if (idColumns.length == 1) {
-                    documentId = flattenMap.get(idColumns[0]).toString();
-                } else {
-                    String[] ids = new String[idColumns.length];
-                    for (int i = 0; i < idColumns.length; i++) {
-                        ids[i] = flattenMap.get(idColumns[i]).toString();
-                    }
-                    documentId = String.join("-", ids);
-                }
-
-                if (documentId == null) {
-                    throw new EspipeException("documentId must not be null");
-                }
+                final String documentId = getDocumentId(indexConfig, flattenMap);
 
                 BulkOperation bulkOperation = BulkOperation.of(b -> {
                     return b.create(c -> {
@@ -197,17 +176,37 @@ public class ElasticsearchPipe {
             });
 
             BulkResponse bulkRes = esClient.bulk(bulkRequest);
-            System.out.println(bulkRes);
 
-
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            // TODO: how to process this exception
         } catch (IOException e) {
             e.printStackTrace();
-            // TODO: do we need to close the client manually
-            // https://github.com/elastic/elasticsearch-java/issues/104
-            // TODO: DO we really need a elasticsearch-client? the httpClient is enough and we can control all behaviors as expected
         }
+    }
+
+
+    /**
+     * load id from index config, support columns combination strategy as id
+     *
+     * @param indexConfig index config
+     * @param flattenMap  flatten Map
+     * @return Document Id
+     */
+    private String getDocumentId(Map<String, String> indexConfig, Map<String, Object> flattenMap) {
+        String[] idColumns = indexConfig.get("idColumns").split(",");
+
+        final String documentId;
+        if (idColumns.length == 1) {
+            documentId = flattenMap.get(idColumns[0]).toString();
+        } else {
+            String[] ids = new String[idColumns.length];
+            for (int i = 0; i < idColumns.length; i++) {
+                ids[i] = flattenMap.get(idColumns[i]).toString();
+            }
+            documentId = String.join("-", ids);
+        }
+
+        if (documentId == null) {
+            throw new EspipeException("documentId must not be null");
+        }
+        return documentId;
     }
 }

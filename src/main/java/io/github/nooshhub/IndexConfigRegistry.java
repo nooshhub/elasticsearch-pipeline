@@ -1,22 +1,37 @@
+/*
+ *  Copyright 2021-2022 the original author or authors.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *         https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
 package io.github.nooshhub;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
 /**
+ * Index Config Registry
+ *
  * @author neals
  * @since 6/2/2022
  */
-// TODO: what about a resource loader to load resources instead?
 @Service
 public class IndexConfigRegistry {
 
@@ -44,19 +59,17 @@ public class IndexConfigRegistry {
             Map<String, String> config = new HashMap<>();
             config.put("indexName", indexName);
 
-            // 2 add child folder settings and mappings
-            // TODO: validation: not found exception
+            // add index settings and mappings
             config.put("indexSettingsPath", rootDir + indexName + "/settings.json");
             config.put("indexMappingPath", rootDir + indexName + "/mapping.json");
 
-            // 3 add sql folder's sql and sql.properties
-            // TODO: validation: not found exception
-            config.put("initSqlPath", rootDir + indexName + "/sql/init.sql");
-            config.put("syncSqlPath", rootDir + indexName + "/sql/sync.sql");
-            config.put("deleteSqlPath", rootDir + indexName + "/sql/delete.sql");
-            config.put("extensionSqlPath", rootDir + indexName + "/sql/extension.sql");
+            // add sql 
+            config.put("initSql", IOUtils.getContent(rootDir + indexName + "/sql/init.sql"));
+            config.put("syncSql", IOUtils.getContent(rootDir + indexName + "/sql/sync.sql"));
+            config.put("deleteSql", IOUtils.getContent(rootDir + indexName + "/sql/delete.sql"));
+            config.put("extensionSql", IOUtils.getContent(rootDir + indexName + "/sql/extension.sql"));
 
-            // TODO: validation: not found exception
+            // add sql.properties
             String sqlPropertiesPath = rootDir + indexName + "/sql/sql.properties";
             Properties sqlProperties = new Properties();
             try (InputStream sqlPropertiesIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlPropertiesPath)) {
@@ -64,7 +77,6 @@ public class IndexConfigRegistry {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            // TODO: validation: not found exception
             config.put("idColumns", sqlProperties.getProperty("id_columns"));
             config.put("extensionColumn", sqlProperties.getProperty("extension_column"));
 
@@ -96,4 +108,5 @@ public class IndexConfigRegistry {
         }
         return indexNames;
     }
+
 }

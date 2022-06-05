@@ -23,22 +23,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import javax.sql.DataSource;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 
 /**
+ * Jdbc Pipe, poll data from database by JDBC
+ *
  * @author neals
  * @since 5/31/2022
  */
@@ -69,7 +64,7 @@ public class JdbcPipe {
      */
     public void init(Map<String, String> indexConfig) {
         String indexName = indexConfig.get("indexName");
-        String initSql = getSql(indexConfig.get("initSqlPath"));
+        String initSql = indexConfig.get("initSql");
 
         LocalDateTime currentRefreshTime = LocalDateTime.now();
         espipeTimer.reset(indexName, currentRefreshTime);
@@ -115,7 +110,7 @@ public class JdbcPipe {
     // todo this is supposed to be scheduled
     public void sync(Map<String, String> indexConfig) {
         String indexName = indexConfig.get("indexName");
-        String syncSql = getSql(indexConfig.get("syncSqlPath"));
+        String syncSql = indexConfig.get("syncSql");
 
         // get the last refresh time from the database
         LocalDateTime lastRefreshTime = espipeTimer.findLastRefreshTime(indexName);
@@ -136,7 +131,7 @@ public class JdbcPipe {
                     ps.setTimestamp(i + 1, Timestamp.valueOf(currentRefreshTime));
                 }
             }
-            
+
             return ps;
         }, rs -> {
             Map<String, Object> flattenMap = createStandardFlattenMap(rs);
@@ -173,12 +168,12 @@ public class JdbcPipe {
     /**
      * put custom fields in flattenMap
      *
-     * @param indexConfig index config
+     * @param indexConfig    index config
      * @param flattenMapList flatten Map List
      */
     private void extendFlattenMap(Map<String, String> indexConfig, List<Map<String, Object>> flattenMapList) {
         String extensionColumn = indexConfig.get("extensionColumn");
-        String extensionSql = getSql(indexConfig.get("extensionSqlPath"));
+        String extensionSql = indexConfig.get("extensionSql");
 
         List<String> extensionIds = new ArrayList<>(100);
         for (Map<String, Object> flattenMap : flattenMapList) {
@@ -242,25 +237,4 @@ public class JdbcPipe {
 
     }
 
-
-    private String getSql(String sqlPath) {
-        // TODO: optimize io speed and put it in cache
-        // https://howtodoinjava.com/java/io/java-read-file-to-string-examples/
-        // https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java
-        // https://www.baeldung.com/convert-input-stream-to-string
-
-        if (sqlPath == null) {
-            throw new EspipeException("initSql is not found by " + sqlPath);
-        }
-
-        InputStream initSqlIns = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlPath);
-        if (initSqlIns == null) {
-            throw new EspipeException("initSql is not found by " + sqlPath);
-        }
-
-        return new BufferedReader(
-                new InputStreamReader(initSqlIns, StandardCharsets.UTF_8))
-                .lines()
-                .collect(Collectors.joining("\n"));
-    }
 }

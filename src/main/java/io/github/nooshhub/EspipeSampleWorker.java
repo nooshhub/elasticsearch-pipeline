@@ -1,3 +1,20 @@
+/*
+ *  Copyright 2021-2022 the original author or authors.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *         https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
 package io.github.nooshhub;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,26 +29,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Sample worker is used to mimic creating data for testing
+ *
  * @author neals
  * @since 6/3/2022
  */
 @Service
 public class EspipeSampleWorker {
     private final static String INSERT = "insert into nh_project values (?, ?, ?, ?, ?)";
-    
+
     @Value("${spring.profiles.active:h2}")
     private String profile;
-    
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     // preserve id form 1 to 9 to manually create data
     private final AtomicInteger atomicInteger = new AtomicInteger(10);
 
-    // TODO: schedule this to create data randomly
     public void create() {
         // ONLY create data for h2 database
-        if(profile.equals("h2")) {
+        if (profile.equals("h2")) {
             List<Object[]> data = new ArrayList<>();
 
             for (int i = 0; i < 10; i++) {
@@ -43,7 +60,7 @@ public class EspipeSampleWorker {
                 args[4] = null;
                 data.add(args);
             }
-            System.out.println("data from " + data.get(0)[0] + " is prepared");
+            // System.out.println("data from " + data.get(0)[0] + " is prepared");
             jdbcTemplate.batchUpdate(INSERT, data);
         }
     }

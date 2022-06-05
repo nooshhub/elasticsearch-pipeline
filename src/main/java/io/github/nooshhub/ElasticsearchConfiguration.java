@@ -1,3 +1,21 @@
+
+/*
+ *  Copyright 2021-2022 the original author or authors.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *         https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
 package io.github.nooshhub;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -14,6 +32,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * Elasticsearch Java client Configuration
+ *
  * @author neals
  * @since 5/31/2022
  */
@@ -23,6 +43,10 @@ public class ElasticsearchConfiguration {
     @Autowired
     private EspipeElasticsearchProperties espipeElasticsearchProperties;
 
+    /**
+     * create a ElasticsearchClient java bean
+     * @return
+     */
     @Bean
     public ElasticsearchClient esClient() {
         // Create the low-level client
@@ -51,12 +75,10 @@ public class ElasticsearchConfiguration {
 
         // Create the transport with a Jackson mapper
         final JacksonJsonpMapper mapper = new JacksonJsonpMapper();
-//            mapper.objectMapper().setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
         ElasticsearchTransport transport = new RestClientTransport(
                 restClient, mapper);
 
         // And create the API client
-        ElasticsearchClient client = new ElasticsearchClient(transport);
-        return client;
+        return new ElasticsearchClient(transport);
     }
 }
