@@ -62,21 +62,19 @@ public class EspipeSampleWorker {
 
         for (int i = 0; i < 10; i++) {
             Object[] args = new Object[5];
-            args[0] = atomicInteger.incrementAndGet();
+            args[0] = atomicInteger.getAndIncrement();
             args[1] = "project " + args[0];
             args[2] = "1,2,3";
-            args[3] = LocalDateTime.now();
+            args[3] = Timestamp.valueOf(LocalDateTime.now());
             args[4] = null;
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+               // NOOP
             }
             data.add(args);
         }
-        LOG.info("data from {} is prepared from {} to {}", data.get(0)[0],
-                Timestamp.valueOf((LocalDateTime) data.get(0)[3]),
-                Timestamp.valueOf((LocalDateTime) data.get(9)[3]));
+        LOG.debug("data from {} is prepared from {} to {}", data.get(0)[0], data.get(0)[3], data.get(9)[3]);
         jdbcTemplate.batchUpdate(INSERT, data);
     }
 

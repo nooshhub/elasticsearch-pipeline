@@ -134,14 +134,14 @@ public class JdbcPipe {
 
         List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
         jdbcTemplate.query(conn -> {
-            LocalDateTime decreasedLastRefreshTime = lastRefreshTime; // .minusSeconds(20)
+            LocalDateTime decreasedLastRefreshTime = lastRefreshTime.minusSeconds(1);
 
             final PreparedStatement ps = conn.prepareStatement(syncSql);
             ParameterMetaData parameterMetaData = ps.getParameterMetaData();
             int paramCount = parameterMetaData.getParameterCount();
             // the param count is depend on the sql, it should be even and is a pair of start and end timestamp.
             for (int i = 0; i < paramCount; i++) {
-                if (paramCount % 2 == 0) {
+                if (i % 2 == 0) {
                     ps.setTimestamp(i + 1, Timestamp.valueOf(decreasedLastRefreshTime));
                 } else {
                     ps.setTimestamp(i + 1, Timestamp.valueOf(currentRefreshTime));
