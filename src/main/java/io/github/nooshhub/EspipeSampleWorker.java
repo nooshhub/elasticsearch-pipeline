@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Profile("h2")
 public class EspipeSampleWorker {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EspipeSampleWorker.class);
+    private static final Logger logger = LoggerFactory.getLogger(EspipeSampleWorker.class);
 
     private final static String INSERT = "insert into nh_project values (?, ?, ?, ?, ?)";
 
@@ -74,8 +74,12 @@ public class EspipeSampleWorker {
             }
             data.add(args);
         }
-        LOG.debug("data from {} is prepared from {} to {}", data.get(0)[0], data.get(0)[3], data.get(9)[3]);
+
         jdbcTemplate.batchUpdate(INSERT, data);
+        
+        if (logger.isDebugEnabled()) {
+            logger.debug("data from {} is prepared from {} to {}", data.get(0)[0], data.get(0)[3], data.get(9)[3]);
+        }
     }
 
 }

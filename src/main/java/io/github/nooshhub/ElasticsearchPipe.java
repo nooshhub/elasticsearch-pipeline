@@ -63,7 +63,7 @@ import java.util.Map;
 @Service
 public class ElasticsearchPipe {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchPipe.class);
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchPipe.class);
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -85,11 +85,11 @@ public class ElasticsearchPipe {
             // Delete index must be synchronized
             AcknowledgedResponse deleteIndexResponse = esClient.indices().delete(DeleteIndexRequest.of(b -> b.index(indexName)));
             if (deleteIndexResponse.acknowledged()) {
-                LOG.info("Index {} is deleted", indexName);
+                logger.info("Index {} is deleted", indexName);
             }
         } catch (ElasticsearchException exception) {
             if (exception.status() == HttpStatus.NOT_FOUND.value()) {
-                LOG.info("Index {} is not exist, no operation", indexName);
+                logger.info("Index {} is not exist, no operation", indexName);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -101,7 +101,7 @@ public class ElasticsearchPipe {
             esClient.indices().create(CreateIndexRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexSettingIns)));
-            LOG.info("Index {} is created", indexName);
+            logger.info("Index {} is created", indexName);
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -112,7 +112,7 @@ public class ElasticsearchPipe {
             esClient.indices().putMapping(PutMappingRequest.of(b -> b
                     .index(indexName)
                     .withJson(indexMappingIns)));
-            LOG.info("Index {} mapping is updated", indexName);
+            logger.info("Index {} mapping is updated", indexName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -180,8 +180,10 @@ public class ElasticsearchPipe {
             });
 
             BulkResponse bulkRes = esClient.bulk(bulkRequest);
-            LOG.info(bulkRes.toString());
-            
+            if (logger.isDebugEnabled()) {
+                logger.debug(bulkRes.toString());
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

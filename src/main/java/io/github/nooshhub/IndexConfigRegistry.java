@@ -38,7 +38,7 @@ import java.util.*;
 @Service
 public class IndexConfigRegistry {
 
-    private static final Logger LOG = LoggerFactory.getLogger(IndexConfigRegistry.class);
+    private static final Logger logger = LoggerFactory.getLogger(IndexConfigRegistry.class);
 
     @Value("${spring.profiles.active:h2}")
     private String profile;
@@ -70,7 +70,7 @@ public class IndexConfigRegistry {
     private void scanIndexConfigs() {
         String rootDir = ROOT_DIR + profile + "/" + INDEX_CONFIG_LOCATION;
 
-        LOG.info("Scanning Index Config under {}", rootDir);
+        logger.info("Scanning Index Config under {}", rootDir);
 
         List<String> indexNames = findIndexNames(rootDir);
 
@@ -121,7 +121,7 @@ public class IndexConfigRegistry {
 
         List<String> indexNames = new ArrayList<>();
         for (File indexConfigDir : indexConfigRootDir.listFiles()) {
-            LOG.info("Found index {}", indexConfigDir.getName());
+            logger.info("Found index {}", indexConfigDir.getName());
             indexNames.add(indexConfigDir.getName());
         }
         return indexNames;

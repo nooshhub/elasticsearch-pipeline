@@ -42,7 +42,7 @@ import java.util.Map;
 @Service
 public class JdbcPipe {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JdbcPipe.class);
+    private static final Logger logger = LoggerFactory.getLogger(JdbcPipe.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -55,11 +55,11 @@ public class JdbcPipe {
 
     public void jdbcMetrics() {
         // fetch size
-        LOG.info("Fetch size {}, max rows {}, query timeout {}", jdbcTemplate.getFetchSize(), jdbcTemplate.getMaxRows(), jdbcTemplate.getQueryTimeout());
+        logger.info("Fetch size {}, max rows {}, query timeout {}", jdbcTemplate.getFetchSize(), jdbcTemplate.getMaxRows(), jdbcTemplate.getQueryTimeout());
         // connection size and status
         HikariDataSource ds = (HikariDataSource) jdbcTemplate.getDataSource();
-        LOG.info("datasource max pool size {} auto commit {}", ds.getMaximumPoolSize(), ds.isAutoCommit());
-        // LOG.info("datasource active connections size {}" , ds.getHikariPoolMXBean().getActiveConnections());
+        logger.info("datasource max pool size {} auto commit {}", ds.getMaximumPoolSize(), ds.isAutoCommit());
+        // logger.info("datasource active connections size {}" , ds.getHikariPoolMXBean().getActiveConnections());
     }
 
     /**
@@ -93,7 +93,9 @@ public class JdbcPipe {
                     // send per jdbcTemplate.getFetchSize()
                     boolean isSend = (rs.getRow() % jdbcTemplate.getFetchSize() == 0);
                     if (isSend) {
-                        LOG.info("index data size {}", flattenMapList.size());
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("index data size {}", flattenMapList.size());
+                        }
                         extendFlattenMap(indexConfig, flattenMapList);
                         elasticsearchPipe.createDocument(indexConfig, flattenMapList);
                         flattenMapList.clear();
@@ -103,14 +105,16 @@ public class JdbcPipe {
 
         // process the rest of data, like we have total 108538, the above will process 108500, the rest 38 will be processed here
         if (flattenMapList.size() > 0) {
-            LOG.info("index data size {}", flattenMapList.size());
+            if (logger.isDebugEnabled()) {
+                logger.debug("index data size {}", flattenMapList.size());
+            }
             extendFlattenMap(indexConfig, flattenMapList);
             elasticsearchPipe.createDocument(indexConfig, flattenMapList);
             flattenMapList.clear();
         }
 
         sw.stop();
-        LOG.info("Total time: {}s", sw.getTotalTimeSeconds());
+        logger.info("Total time: {}s", sw.getTotalTimeSeconds());
     }
 
     /**
@@ -147,8 +151,10 @@ public class JdbcPipe {
                     ps.setTimestamp(i + 1, Timestamp.valueOf(currentRefreshTime));
                 }
             }
-
-            LOG.info("syncing data for index {} from {} to {}", indexName, Timestamp.valueOf(decreasedLastRefreshTime), Timestamp.valueOf(currentRefreshTime));
+            
+            if (logger.isDebugEnabled()) {
+                logger.debug("syncing data for index {} from {} to {}", indexName, Timestamp.valueOf(decreasedLastRefreshTime), Timestamp.valueOf(currentRefreshTime));
+            }
 
             return ps;
         }, rs -> {
@@ -157,7 +163,9 @@ public class JdbcPipe {
         });
 
         if (flattenMapList.size() > 0) {
-            LOG.info("syncing data for index {} size {}", indexName, flattenMapList.size());
+            if (logger.isDebugEnabled()) {
+                logger.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
+            }
             extendFlattenMap(indexConfig, flattenMapList);
             elasticsearchPipe.createDocument(indexConfig, flattenMapList);
             flattenMapList.clear();

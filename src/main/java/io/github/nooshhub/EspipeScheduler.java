@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EspipeScheduler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EspipeSampleWorker.class);
+    private static final Logger logger = LoggerFactory.getLogger(EspipeSampleWorker.class);
 
     @Autowired
     private IndexConfigRegistry indexConfigRegistry;
