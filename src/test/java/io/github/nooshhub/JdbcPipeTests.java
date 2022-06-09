@@ -24,30 +24,30 @@ import org.springframework.boot.test.context.SpringBootTest;
 /**
  * Unit tests for {@link JdbcPipeTests}
  *
- * @author neals
+ * @author Neal Shan
  * @since 5/31/2022
  */
 @SpringBootTest(properties = "spring.profiles.active:h2")
 public class JdbcPipeTests {
 
-    @Autowired
-    private IndexConfigRegistry indexConfigRegistry;
-    @Autowired
-    private JdbcPipe jdbcPipe;
+	@Autowired
+	private IndexConfigRegistry indexConfigRegistry;
 
-    @Test
-    public void init() {
-        indexConfigRegistry.getIndexConfigs()
-                .forEach(indexConfig -> {
-                    jdbcPipe.init(indexConfig);
-                });
-    }
+	@Autowired
+	private JdbcPipe jdbcPipe;
 
-    @Test
-    public void sync() {
-        indexConfigRegistry.getIndexConfigs()
-                .forEach(indexConfig -> {
-                    jdbcPipe.sync(indexConfig);
-                });
-    }
+	@Test
+	public void init() {
+		indexConfigRegistry.getIndexConfigs().forEach(indexConfig -> {
+			jdbcPipe.init(indexConfig);
+		});
+	}
+
+	@Test
+	public void sync() {
+		indexConfigRegistry.getIndexConfigs().forEach(indexConfig -> {
+			jdbcPipe.sync(indexConfig);
+		});
+	}
+
 }
