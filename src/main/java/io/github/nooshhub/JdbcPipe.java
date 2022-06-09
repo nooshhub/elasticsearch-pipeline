@@ -16,23 +16,30 @@
 
 package io.github.nooshhub;
 
-import com.zaxxer.hikari.HikariDataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StopWatch;
-
-import java.sql.*;
+import java.sql.JDBCType;
+import java.sql.ParameterMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
+
 /**
- * Jdbc Pipe, poll data from database by JDBC
+ * Jdbc Pipe, poll data from database by JDBC.
  *
  * @author Neal Shan
  * @since 5/31/2022
@@ -56,48 +63,48 @@ public class JdbcPipe {
 
 	public void jdbcMetrics() {
 		// fetch size
-		logger.info("Fetch size {}, max rows {}, query timeout {}", jdbcTemplate.getFetchSize(),
-				jdbcTemplate.getMaxRows(), jdbcTemplate.getQueryTimeout());
+		logger.info("Fetch size {}, max rows {}, query timeout {}", this.jdbcTemplate.getFetchSize(),
+				this.jdbcTemplate.getMaxRows(), this.jdbcTemplate.getQueryTimeout());
 		// connection size and status
-		HikariDataSource ds = (HikariDataSource) jdbcTemplate.getDataSource();
+		HikariDataSource ds = (HikariDataSource) this.jdbcTemplate.getDataSource();
 		logger.info("datasource max pool size {} auto commit {}", ds.getMaximumPoolSize(), ds.isAutoCommit());
 		// logger.info("datasource active connections size {}" ,
 		// ds.getHikariPoolMXBean().getActiveConnections());
 	}
 
 	/**
-	 * init data to index
+	 * init data to index.
 	 * @param indexConfig index config
 	 */
 	public void init(Map<String, String> indexConfig) {
 
-		elasticsearchPipe.createIndex(indexConfig);
+		this.elasticsearchPipe.createIndex(indexConfig);
 
 		String indexName = indexConfig.get("indexName");
 		String initSql = indexConfig.get("initSql");
 
 		LocalDateTime currentRefreshTime = LocalDateTime.now();
-		espipeTimer.reset(indexName, currentRefreshTime);
+		this.espipeTimer.reset(indexName, currentRefreshTime);
 
 		jdbcMetrics();
 
 		StopWatch sw = new StopWatch();
 		sw.start();
 
-		List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
-		jdbcTemplate.query(initSql, new Object[] { currentRefreshTime },
-				new int[] { JDBCType.TIMESTAMP.getVendorTypeNumber() }, rs -> {
+		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
+		this.jdbcTemplate.query(initSql, new Object[] { currentRefreshTime },
+				new int[] { JDBCType.TIMESTAMP.getVendorTypeNumber() }, (rs) -> {
 					Map<String, Object> flattenMap = createStandardFlattenMap(rs);
 					flattenMapList.add(flattenMap);
 
 					// send per jdbcTemplate.getFetchSize()
-					boolean isSend = (rs.getRow() % jdbcTemplate.getFetchSize() == 0);
+					boolean isSend = (rs.getRow() % this.jdbcTemplate.getFetchSize() == 0);
 					if (isSend) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("index data size {}", flattenMapList.size());
 						}
 						extendFlattenMap(indexConfig, flattenMapList);
-						elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+						this.elasticsearchPipe.createDocument(indexConfig, flattenMapList);
 						flattenMapList.clear();
 					}
 
@@ -110,7 +117,7 @@ public class JdbcPipe {
 				logger.debug("index data size {}", flattenMapList.size());
 			}
 			extendFlattenMap(indexConfig, flattenMapList);
-			elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+			this.elasticsearchPipe.createDocument(indexConfig, flattenMapList);
 			flattenMapList.clear();
 		}
 
@@ -119,7 +126,7 @@ public class JdbcPipe {
 	}
 
 	/**
-	 * sync data to index
+	 * sync data to index.
 	 * @param indexConfig index config
 	 */
 	public void sync(Map<String, String> indexConfig) {
@@ -127,17 +134,17 @@ public class JdbcPipe {
 		String syncSql = indexConfig.get("syncSql");
 
 		// get the last refresh time from the database
-		LocalDateTime lastRefreshTime = espipeTimer.findLastRefreshTime(indexName);
+		LocalDateTime lastRefreshTime = this.espipeTimer.findLastRefreshTime(indexName);
 		if (lastRefreshTime == null) {
 			throw new EspipeException("Please init index " + indexName + " first.");
 		}
 
 		LocalDateTime currentRefreshTime = LocalDateTime.now();
 
-		espipeTimer.reset(indexName, currentRefreshTime);
+		this.espipeTimer.reset(indexName, currentRefreshTime);
 
-		List<Map<String, Object>> flattenMapList = new ArrayList<>(jdbcTemplate.getFetchSize());
-		jdbcTemplate.query(conn -> {
+		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
+		this.jdbcTemplate.query((conn) -> {
 			LocalDateTime decreasedLastRefreshTime = lastRefreshTime.minusSeconds(1);
 
 			final PreparedStatement ps = conn.prepareStatement(syncSql);
@@ -160,7 +167,7 @@ public class JdbcPipe {
 			}
 
 			return ps;
-		}, rs -> {
+		}, (rs) -> {
 			Map<String, Object> flattenMap = createStandardFlattenMap(rs);
 			flattenMapList.add(flattenMap);
 		});
@@ -170,13 +177,13 @@ public class JdbcPipe {
 				logger.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
 			}
 			extendFlattenMap(indexConfig, flattenMapList);
-			elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+			this.elasticsearchPipe.createDocument(indexConfig, flattenMapList);
 			flattenMapList.clear();
 		}
 	}
 
 	/**
-	 * put stand fields in flattenMap
+	 * put stand fields in flattenMap.
 	 * @param rs result set
 	 * @return flatten map
 	 * @throws SQLException all sql exception
@@ -195,7 +202,7 @@ public class JdbcPipe {
 	}
 
 	/**
-	 * put custom fields in flattenMap
+	 * put custom fields in flattenMap.
 	 * @param indexConfig index config
 	 * @param flattenMapList flatten Map List
 	 */
@@ -212,11 +219,11 @@ public class JdbcPipe {
 
 		if (extensionIds.size() > 0) {
 			extensionSql = extensionSql.replace("?", String.join(",", extensionIds));
-			if (EspipeFieldsMode.flatten.toString().equals(espipeElasticsearchProperties.getFieldsMode())) {
+			if (EspipeFieldsMode.flatten.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 
 				Map<String, Map<String, Object>> customIdToCustomFlattenMap = new HashMap<>();
 
-				jdbcTemplate.query(extensionSql, prs -> {
+				this.jdbcTemplate.query(extensionSql, (prs) -> {
 					ResultSetMetaData prsMetaData = prs.getMetaData();
 					int pcount = prsMetaData.getColumnCount();
 					for (int i = 1; i <= pcount; i++) {
@@ -237,10 +244,10 @@ public class JdbcPipe {
 					}
 				}
 			}
-			else if (EspipeFieldsMode.custom_in_one.toString().equals(espipeElasticsearchProperties.getFieldsMode())) {
+			else if (EspipeFieldsMode.custom_in_one.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 				Map<Object, StringBuilder> customIdToSbMap = new HashMap<>();
 
-				jdbcTemplate.query(extensionSql, prs -> {
+				this.jdbcTemplate.query(extensionSql, (prs) -> {
 					ResultSetMetaData prsMetaData = prs.getMetaData();
 					int pcount = prsMetaData.getColumnCount();
 					for (int i = 1; i <= pcount; i++) {

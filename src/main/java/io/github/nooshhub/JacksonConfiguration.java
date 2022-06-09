@@ -16,14 +16,15 @@
 
 package io.github.nooshhub;
 
+import java.text.SimpleDateFormat;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.text.SimpleDateFormat;
-
 /**
- * Jackson Configuration
+ * Jackson Configuration.
  *
  * @author Neal Shan
  * @since 5/31/2022
@@ -32,7 +33,7 @@ import java.text.SimpleDateFormat;
 public class JacksonConfiguration {
 
 	/**
-	 * create a object mapper bean
+	 * create a object mapper bean.
 	 * @return object mapper bean
 	 */
 	@Bean
