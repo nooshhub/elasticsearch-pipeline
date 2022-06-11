@@ -28,7 +28,6 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,31 +40,25 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ElasticsearchConfiguration {
 
-	@Autowired
-	private EspipeElasticsearchProperties espipeElasticsearchProperties;
 
 	/**
 	 * create a ElasticsearchClient java bean.
+	 * @param espipeElasticsearchProperties espipe elasticsearch properties from application.yml
 	 * @return elasticsearchClient java bean
 	 */
 	@Bean
-	public ElasticsearchClient esClient() {
+	public ElasticsearchClient esClient(EspipeElasticsearchProperties espipeElasticsearchProperties) {
 		// Create the low-level client
 		RestClient restClient = RestClient
-				.builder(new HttpHost(this.espipeElasticsearchProperties.getHost(),
-						this.espipeElasticsearchProperties.getPort(), this.espipeElasticsearchProperties.getProtocol()))
+				.builder(new HttpHost(espipeElasticsearchProperties.getHost(),
+						espipeElasticsearchProperties.getPort(), espipeElasticsearchProperties.getProtocol()))
 				// enable keepalive to 300s, to be less than the ELB idle time 350s
 				// so client can close connection first
 				.setHttpClientConfigCallback(
 						(httpClientBuilder) -> httpClientBuilder.setKeepAliveStrategy((response, context) -> 300000)
 								.setDefaultIOReactorConfig(IOReactorConfig.custom().setSoKeepAlive(true).build()))
 				// raise the connection timeout from 1s to 5s to exclude the timeout issue
-				.setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
-					@Override
-					public RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder requestConfigBuilder) {
-						return requestConfigBuilder.setConnectTimeout(5000);
-					}
-				}).build();
+				.setRequestConfigCallback((requestConfigBuilder) -> requestConfigBuilder.setConnectTimeout(5000)).build();
 
 		// Create the transport with a Jackson mapper
 		final JacksonJsonpMapper mapper = new JacksonJsonpMapper();
