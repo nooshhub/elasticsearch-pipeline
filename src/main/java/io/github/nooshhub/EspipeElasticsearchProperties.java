@@ -20,7 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Espipe Elasticsearch Properties
+ * Espipe Elasticsearch Properties.
  *
  * @author Neal Shan
  * @since 5/31/2022
@@ -38,7 +38,7 @@ public class EspipeElasticsearchProperties {
 	private String fieldsMode;
 
 	public String getHost() {
-		return host;
+		return this.host;
 	}
 
 	public void setHost(String host) {
@@ -46,7 +46,7 @@ public class EspipeElasticsearchProperties {
 	}
 
 	public int getPort() {
-		return port;
+		return this.port;
 	}
 
 	public void setPort(int port) {
@@ -54,7 +54,7 @@ public class EspipeElasticsearchProperties {
 	}
 
 	public String getProtocol() {
-		return protocol;
+		return this.protocol;
 	}
 
 	public void setProtocol(String protocol) {
@@ -62,7 +62,7 @@ public class EspipeElasticsearchProperties {
 	}
 
 	public String getFieldsMode() {
-		return fieldsMode;
+		return this.fieldsMode;
 	}
 
 	public void setFieldsMode(String fieldsMode) {

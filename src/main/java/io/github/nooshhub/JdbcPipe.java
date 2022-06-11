@@ -219,7 +219,7 @@ public class JdbcPipe {
 
 		if (extensionIds.size() > 0) {
 			extensionSql = extensionSql.replace("?", String.join(",", extensionIds));
-			if (EspipeFieldsMode.flatten.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
+			if (EspipeFieldsMode.FLATTEN.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 
 				Map<String, Map<String, Object>> customIdToCustomFlattenMap = new HashMap<>();
 
@@ -244,7 +244,8 @@ public class JdbcPipe {
 					}
 				}
 			}
-			else if (EspipeFieldsMode.custom_in_one.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
+			else if (EspipeFieldsMode.CUSTOM_IN_ONE.toString()
+					.equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 				Map<Object, StringBuilder> customIdToSbMap = new HashMap<>();
 
 				this.jdbcTemplate.query(extensionSql, (prs) -> {

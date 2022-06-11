@@ -17,13 +17,26 @@
 package io.github.nooshhub;
 
 /**
- * Espipe Fields Mode
+ * Espipe Fields Mode.
  *
  * @author Neal Shan
  * @since 6/4/2022
  */
 public enum EspipeFieldsMode {
 
-	flatten, all_in_one, custom_in_one
+	/**
+	 * Constant that indicates convert standard fields to a flatten map.
+	 */
+	FLATTEN,
+
+	/**
+	 * Constant that indicates aggregate standard and custom fields to a string.
+	 */
+	ALL_IN_ONE,
+
+	/**
+	 * Constant that indicates aggregate custom fields to a string.
+	 */
+	CUSTOM_IN_ONE
 
 }

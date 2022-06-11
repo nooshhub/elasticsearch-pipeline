@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 /**
  * Elasticsearch Java client Configuration.
  *
@@ -53,8 +52,8 @@ public class ElasticsearchConfiguration {
 	public ElasticsearchClient esClient() {
 		// Create the low-level client
 		RestClient restClient = RestClient
-				.builder(new HttpHost(this.espipeElasticsearchProperties.getHost(), this.espipeElasticsearchProperties.getPort(),
-						this.espipeElasticsearchProperties.getProtocol()))
+				.builder(new HttpHost(this.espipeElasticsearchProperties.getHost(),
+						this.espipeElasticsearchProperties.getPort(), this.espipeElasticsearchProperties.getProtocol()))
 				// enable keepalive to 300s, to be less than the ELB idle time 350s
 				// so client can close connection first
 				.setHttpClientConfigCallback(

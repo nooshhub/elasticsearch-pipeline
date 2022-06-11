@@ -17,7 +17,7 @@
 package io.github.nooshhub;
 
 /**
- * Espipe Exception
+ * Espipe Exception.
  *
  * @author Neal Shan
  * @since 6/1/2022

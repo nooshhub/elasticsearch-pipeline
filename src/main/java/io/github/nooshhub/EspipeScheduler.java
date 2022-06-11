@@ -16,22 +16,18 @@
 
 package io.github.nooshhub;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
- * Espipe Scheduler is used to trigger synchronization task
+ * Espipe Scheduler is used to trigger synchronization task.
  *
  * @author Neal Shan
  * @since 6/4/2022
  */
 @Service
 public class EspipeScheduler {
-
-	private static final Logger logger = LoggerFactory.getLogger(EspipeSampleWorker.class);
 
 	@Autowired
 	private IndexConfigRegistry indexConfigRegistry;
@@ -41,10 +37,7 @@ public class EspipeScheduler {
 
 	@Scheduled(fixedRate = 5000)
 	public void sync() {
-		indexConfigRegistry.getIndexConfigs().forEach(indexConfig -> {
-			jdbcPipe.sync(indexConfig);
-		});
-
+		this.indexConfigRegistry.getIndexConfigs().forEach((indexConfig) -> this.jdbcPipe.sync(indexConfig));
 	}
 
 }

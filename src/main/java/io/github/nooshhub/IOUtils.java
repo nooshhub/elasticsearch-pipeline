@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 /**
- * IO Utils
+ * IO Utils.
  * <p>
  * References: https://howtodoinjava.com/java/io/java-read-file-to-string-examples/
  * https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java
@@ -32,10 +32,13 @@ import java.util.stream.Collectors;
  * @author Neal Shan
  * @since 6/4/2022
  */
-public class IOUtils {
+public final class IOUtils {
+
+	private IOUtils() {
+	}
 
 	/**
-	 * get input stream by file path
+	 * get input stream by file path.
 	 * @param filePath file path
 	 * @return input stream
 	 */
@@ -53,7 +56,7 @@ public class IOUtils {
 	}
 
 	/**
-	 * get string by file path
+	 * get string by file path.
 	 * @param filePath file path
 	 * @return file content as string
 	 */

@@ -16,8 +16,15 @@
 
 package io.github.nooshhub;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -25,15 +32,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Sample worker is used to mimic creating data for testing ONLY create data for h2
- * database
+ * database.
  *
  * @author Neal Shan
  * @since 6/3/2022
@@ -44,7 +45,7 @@ public class EspipeSampleWorker {
 
 	private static final Logger logger = LoggerFactory.getLogger(EspipeSampleWorker.class);
 
-	private final static String INSERT = "insert into nh_project values (?, ?, ?, ?, ?)";
+	private static final String INSERT = "insert into nh_project values (?, ?, ?, ?, ?)";
 
 	@Value("${spring.profiles.active:h2}")
 	private String profile;
@@ -61,7 +62,7 @@ public class EspipeSampleWorker {
 
 		for (int i = 0; i < 10; i++) {
 			Object[] args = new Object[5];
-			args[0] = atomicInteger.getAndIncrement();
+			args[0] = this.atomicInteger.getAndIncrement();
 			args[1] = "project " + args[0];
 			args[2] = "1,2,3";
 			args[3] = Timestamp.valueOf(LocalDateTime.now());
@@ -69,13 +70,15 @@ public class EspipeSampleWorker {
 			try {
 				Thread.sleep(200);
 			}
-			catch (InterruptedException e) {
-				// NOOP
+			catch (InterruptedException ex) {
+				logger.warn("Interrupted!", ex);
+				// Restore interrupted state...
+				Thread.currentThread().interrupt();
 			}
 			data.add(args);
 		}
 
-		jdbcTemplate.batchUpdate(INSERT, data);
+		this.jdbcTemplate.batchUpdate(INSERT, data);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("data from {} is prepared from {} to {}", data.get(0)[0], data.get(0)[3], data.get(9)[3]);

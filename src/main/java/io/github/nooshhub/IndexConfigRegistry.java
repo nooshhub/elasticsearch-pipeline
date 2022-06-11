@@ -16,20 +16,28 @@
 
 package io.github.nooshhub;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.*;
-
 /**
- * Index Config Registry
+ * Index Config Registry.
  *
  * @author Neal Shan
  * @since 6/2/2022
@@ -39,35 +47,39 @@ public class IndexConfigRegistry {
 
 	private static final Logger logger = LoggerFactory.getLogger(IndexConfigRegistry.class);
 
+	/**
+	 * root directory under resources.
+	 */
+	public static final String ROOT_DIR = "espipe/";
+
+	/**
+	 * directory to put create index required configuration and sql.
+	 */
+	public static final String INDEX_CONFIG_LOCATION = "es/";
+
 	@Value("${spring.profiles.active:h2}")
 	private String profile;
 
 	@Autowired
 	private JdbcPipe jdbcPipe;
 
-	public static final String ROOT_DIR = "espipe/";
-
-	public static final String INDEX_CONFIG_LOCATION = "es/";
-
 	private final List<Map<String, String>> configs = new ArrayList<>();
 
 	public List<Map<String, String>> getIndexConfigs() {
-		return configs;
+		return this.configs;
 	}
 
 	@PostConstruct
 	public void init() {
 		scanIndexConfigs();
 
-		if (profile.equals("h2")) {
-			getIndexConfigs().forEach(indexConfig -> {
-				jdbcPipe.init(indexConfig);
-			});
+		if (this.profile.equals("h2")) {
+			getIndexConfigs().forEach((indexConfig) -> this.jdbcPipe.init(indexConfig));
 		}
 	}
 
 	private void scanIndexConfigs() {
-		String rootDir = ROOT_DIR + profile + "/" + INDEX_CONFIG_LOCATION;
+		String rootDir = ROOT_DIR + this.profile + "/" + INDEX_CONFIG_LOCATION;
 
 		logger.info("Scanning Index Config under {}", rootDir);
 
@@ -94,13 +106,13 @@ public class IndexConfigRegistry {
 					.getResourceAsStream(sqlPropertiesPath)) {
 				sqlProperties.load(sqlPropertiesIns);
 			}
-			catch (IOException e) {
-				e.printStackTrace();
+			catch (IOException ex) {
+				ex.printStackTrace();
 			}
 			config.put("idColumns", sqlProperties.getProperty("id_columns"));
 			config.put("extensionColumn", sqlProperties.getProperty("extension_column"));
 
-			configs.add(config);
+			this.configs.add(config);
 		}
 	}
 
@@ -113,8 +125,8 @@ public class IndexConfigRegistry {
 			}
 			indexConfigRootDir = new File(resource.toURI());
 		}
-		catch (URISyntaxException e) {
-			e.printStackTrace();
+		catch (URISyntaxException ex) {
+			ex.printStackTrace();
 		}
 
 		if (indexConfigRootDir == null) {

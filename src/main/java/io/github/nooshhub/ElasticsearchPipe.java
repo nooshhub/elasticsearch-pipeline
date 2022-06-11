@@ -16,13 +16,19 @@
 
 package io.github.nooshhub;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.AcknowledgedResponse;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
-import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
@@ -31,16 +37,10 @@ import co.elastic.clients.json.JsonData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Elasticsearch Pipe, create, update, delete index or document
@@ -69,7 +69,7 @@ public class ElasticsearchPipe {
 	private ElasticsearchClient esClient;
 
 	/**
-	 * create index
+	 * create index.
 	 * @param indexConfig index config
 	 */
 	public void createIndex(Map<String, String> indexConfig) {
@@ -80,44 +80,45 @@ public class ElasticsearchPipe {
 		// delete index if index is exist
 		try {
 			// Delete index must be synchronized
-			AcknowledgedResponse deleteIndexResponse = esClient.indices()
-					.delete(DeleteIndexRequest.of(b -> b.index(indexName)));
+			AcknowledgedResponse deleteIndexResponse = this.esClient.indices()
+					.delete(DeleteIndexRequest.of((b) -> b.index(indexName)));
 			if (deleteIndexResponse.acknowledged()) {
 				logger.info("Index {} is deleted", indexName);
 			}
 		}
-		catch (ElasticsearchException exception) {
-			if (exception.status() == HttpStatus.NOT_FOUND.value()) {
+		catch (ElasticsearchException ex) {
+			if (ex.status() == HttpStatus.NOT_FOUND.value()) {
 				logger.info("Index {} is not exist, no operation", indexName);
 			}
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (IOException ex) {
+			ex.printStackTrace();
 			return;
 		}
 
 		try (InputStream indexSettingIns = IOUtils.getInputStream(settingsPath)) {
 			// create index with settings
-			esClient.indices().create(CreateIndexRequest.of(b -> b.index(indexName).withJson(indexSettingIns)));
+			this.esClient.indices().create(CreateIndexRequest.of((b) -> b.index(indexName).withJson(indexSettingIns)));
 			logger.info("Index {} is created", indexName);
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (IOException ex) {
+			ex.printStackTrace();
 			return;
 		}
 
 		try (InputStream indexMappingIns = IOUtils.getInputStream(mappingPath)) {
 			// update index mapping
-			esClient.indices().putMapping(PutMappingRequest.of(b -> b.index(indexName).withJson(indexMappingIns)));
+			this.esClient.indices()
+					.putMapping(PutMappingRequest.of((b) -> b.index(indexName).withJson(indexMappingIns)));
 			logger.info("Index {} mapping is updated", indexName);
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (IOException ex) {
+			ex.printStackTrace();
 		}
 	}
 
 	/**
-	 * create one document
+	 * create one document.
 	 * @param indexConfig index Config
 	 * @param flattenMap flatten Map
 	 */
@@ -125,24 +126,21 @@ public class ElasticsearchPipe {
 		String indexName = indexConfig.get("indexName");
 
 		try {
-			final String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
+			final String json = this.objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
 			final String documentId = getDocumentId(indexConfig, flattenMap);
 
 			IndexRequest<JsonData> req;
-			req = IndexRequest.of(b -> {
-				return b.index(indexName).id(documentId).withJson(new StringReader(json));
-			});
-
-			IndexResponse res = esClient.index(req);
+			req = IndexRequest.of((b) -> b.index(indexName).id(documentId).withJson(new StringReader(json)));
+			this.esClient.index(req);
 
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (IOException ex) {
+			ex.printStackTrace();
 		}
 	}
 
 	/**
-	 * create multiple document
+	 * create multiple document.
 	 * @param indexConfig index Config
 	 * @param flattenMapList flatten Map list
 	 */
@@ -155,34 +153,29 @@ public class ElasticsearchPipe {
 			for (Map<String, Object> flattenMap : flattenMapList) {
 				final String documentId = getDocumentId(indexConfig, flattenMap);
 
-				BulkOperation bulkOperation = BulkOperation.of(b -> {
-					return b.create(c -> {
-						return c.index(indexName).id(documentId).document(flattenMap);
-					});
-				});
+				BulkOperation bulkOperation = BulkOperation
+						.of((b) -> b.create((c) -> c.index(indexName).id(documentId).document(flattenMap)));
 				bulkOperations.add(bulkOperation);
 			}
 
-			BulkRequest bulkRequest = BulkRequest.of(b -> {
-				return b.operations(bulkOperations);
-			});
+			BulkRequest bulkRequest = BulkRequest.of((b) -> b.operations(bulkOperations));
 
-			BulkResponse bulkRes = esClient.bulk(bulkRequest);
+			BulkResponse bulkRes = this.esClient.bulk(bulkRequest);
 			if (logger.isDebugEnabled()) {
 				logger.debug(bulkRes.toString());
 			}
 
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (IOException ex) {
+			ex.printStackTrace();
 		}
 	}
 
 	/**
-	 * load id from index config, support columns combination strategy as id
+	 * load id from index config, support columns combination strategy as id.
 	 * @param indexConfig index config
 	 * @param flattenMap flatten Map
-	 * @return Document Id
+	 * @return document Id
 	 */
 	private String getDocumentId(Map<String, String> indexConfig, Map<String, Object> flattenMap) {
 		String[] idColumns = indexConfig.get("idColumns").split(",");
