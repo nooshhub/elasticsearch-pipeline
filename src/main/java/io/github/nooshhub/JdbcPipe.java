@@ -65,15 +65,12 @@ public class JdbcPipe {
 		// fetch size
 		logger.info("Fetch size {}, max rows {}, query timeout {}", this.jdbcTemplate.getFetchSize(),
 				this.jdbcTemplate.getMaxRows(), this.jdbcTemplate.getQueryTimeout());
-		
+
 		// connection size and status
 		HikariDataSource ds = (HikariDataSource) this.jdbcTemplate.getDataSource();
-		if(ds != null) {
-			logger.info("datasource max pool size {} auto commit {} Active Connections {}",
-					ds.getMaximumPoolSize(),
-					ds.isAutoCommit(),
-					ds.getHikariPoolMXBean().getActiveConnections()
-			);
+		if (ds != null) {
+			logger.info("datasource max pool size {} auto commit {} Active Connections {}", ds.getMaximumPoolSize(),
+					ds.isAutoCommit(), ds.getHikariPoolMXBean().getActiveConnections());
 		}
 	}
 
