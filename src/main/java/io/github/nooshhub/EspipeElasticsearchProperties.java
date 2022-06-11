@@ -37,6 +37,20 @@ public class EspipeElasticsearchProperties {
 
 	private String fieldsMode;
 
+	/**
+	 * bulkSize.
+	 * https://www.elastic.co/blog/benchmarking-and-sizing-your-elasticsearch-cluster-for-logs-and-metrics
+	 */
+	private int bulkSize;
+
+	public int getBulkSize() {
+		return this.bulkSize;
+	}
+
+	public void setBulkSize(int bulkSize) {
+		this.bulkSize = bulkSize;
+	}
+
 	public String getHost() {
 		return this.host;
 	}

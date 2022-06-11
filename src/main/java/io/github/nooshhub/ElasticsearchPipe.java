@@ -22,7 +22,10 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
+import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.AcknowledgedResponse;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
@@ -32,6 +35,7 @@ import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
+import co.elastic.clients.elasticsearch.indices.PutIndicesSettingsRequest;
 import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
 import co.elastic.clients.json.JsonData;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,6 +71,9 @@ public class ElasticsearchPipe {
 
 	@Autowired
 	private ElasticsearchClient esClient;
+
+	@Autowired
+	private ElasticsearchAsyncClient esAsyncClient;
 
 	/**
 	 * create index.
@@ -118,6 +125,23 @@ public class ElasticsearchPipe {
 	}
 
 	/**
+	 * Update Settings After Init is finished.
+	 * PUT /my-index-000001/_settings
+	 * {"index" : {"refresh_interval" : "1s"}}
+	 * @param indexConfig index Config
+	 */
+	public void updateSettingsAfterInit(Map<String, String> indexConfig) {
+		final String indexName = indexConfig.get("indexName");
+		try {
+			this.esClient.indices().putSettings(PutIndicesSettingsRequest
+					.of((b) -> b.index(indexName).settings((settings) -> settings.refreshInterval((t) -> t.time("1s")))));
+		}
+		catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	/**
 	 * create one document.
 	 * @param indexConfig index Config
 	 * @param flattenMap flatten Map
@@ -147,28 +171,32 @@ public class ElasticsearchPipe {
 	public void createDocument(Map<String, String> indexConfig, List<Map<String, Object>> flattenMapList) {
 		String indexName = indexConfig.get("indexName");
 
+		List<BulkOperation> bulkOperations = new ArrayList<>();
+
+		for (Map<String, Object> flattenMap : flattenMapList) {
+			final String documentId = getDocumentId(indexConfig, flattenMap);
+
+			BulkOperation bulkOperation = BulkOperation
+					.of((b) -> b.create((c) -> c.index(indexName).id(documentId).document(flattenMap)));
+			bulkOperations.add(bulkOperation);
+		}
+
+		BulkRequest bulkRequest = BulkRequest.of((b) -> b.operations(bulkOperations));
+
+		CompletableFuture<BulkResponse> bulkResFuture = this.esAsyncClient.bulk(bulkRequest);
+		BulkResponse bulkRes = null;
 		try {
-			List<BulkOperation> bulkOperations = new ArrayList<>();
-
-			for (Map<String, Object> flattenMap : flattenMapList) {
-				final String documentId = getDocumentId(indexConfig, flattenMap);
-
-				BulkOperation bulkOperation = BulkOperation
-						.of((b) -> b.create((c) -> c.index(indexName).id(documentId).document(flattenMap)));
-				bulkOperations.add(bulkOperation);
-			}
-
-			BulkRequest bulkRequest = BulkRequest.of((b) -> b.operations(bulkOperations));
-
-			BulkResponse bulkRes = this.esClient.bulk(bulkRequest);
+			bulkRes = bulkResFuture.get();
 			if (logger.isDebugEnabled()) {
 				logger.debug(bulkRes.toString());
 			}
+		}
+		catch (InterruptedException | ExecutionException ex) {
+			logger.warn("Interrupted!", ex);
+			// Restore interrupted state...
+			Thread.currentThread().interrupt();
+		}
 
-		}
-		catch (IOException ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	/**

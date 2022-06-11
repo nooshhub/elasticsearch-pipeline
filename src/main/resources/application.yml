@@ -5,6 +5,7 @@ espipe:
     protocol: http
     # fields_mode: flatten, custom_in_one[default], all_in_one[not support yet]
     fields_mode: custom_in_one
+    bulk_size: 12000
 
 spring:
   # improve fetch data from database performance
@@ -13,3 +14,7 @@ spring:
   jdbc.template.fetch-size: 100
   task.scheduling.pool.size: 4
 
+logging:
+  level:
+    root: info
+    io.github.nooshhub.ElasticsearchPipe: debug

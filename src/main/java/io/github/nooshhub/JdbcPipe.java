@@ -100,7 +100,7 @@ public class JdbcPipe {
 					flattenMapList.add(flattenMap);
 
 					// send per jdbcTemplate.getFetchSize()
-					boolean isSend = (rs.getRow() % this.jdbcTemplate.getFetchSize() == 0);
+					boolean isSend = (rs.getRow() % this.espipeElasticsearchProperties.getBulkSize() == 0);
 					if (isSend) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("index data size {}", flattenMapList.size());
@@ -123,6 +123,7 @@ public class JdbcPipe {
 			flattenMapList.clear();
 		}
 
+		this.elasticsearchPipe.updateSettingsAfterInit(indexConfig);
 		sw.stop();
 		logger.info("Total time: {}s", sw.getTotalTimeSeconds());
 	}
