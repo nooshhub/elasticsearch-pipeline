@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,9 +45,6 @@ public class EspipeSampleWorker {
 	private static final Logger logger = LoggerFactory.getLogger(EspipeSampleWorker.class);
 
 	private static final String INSERT = "insert into nh_project values (?, ?, ?, ?, ?)";
-
-	@Value("${spring.profiles.active:h2}")
-	private String profile;
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
