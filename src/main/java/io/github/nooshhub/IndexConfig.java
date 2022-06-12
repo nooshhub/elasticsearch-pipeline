@@ -28,14 +28,20 @@ public class IndexConfig {
 
 	// index settings and mappings
 	private String indexSettingsPath;
+
 	private String indexMappingPath;
 
 	// sql
 	private String initSql;
+
 	private String syncSql;
+
 	private String deleteSql;
+
 	private String extensionSql;
+
 	private String idColumns;
+
 	private String extensionColumn;
 
 	public String getIndexName() {
@@ -109,4 +115,5 @@ public class IndexConfig {
 	public void setExtensionColumn(String extensionColumn) {
 		this.extensionColumn = extensionColumn;
 	}
+
 }

@@ -61,6 +61,9 @@ public class JdbcPipe {
 	@Autowired
 	private EspipeElasticsearchProperties espipeElasticsearchProperties;
 
+	@Autowired
+	private IndexConfigRegistry indexConfigRegistry;
+
 	public void jdbcMetrics() {
 		// fetch size
 		logger.info("Fetch size {}, max rows {}, query timeout {}", this.jdbcTemplate.getFetchSize(),
@@ -76,17 +79,14 @@ public class JdbcPipe {
 
 	/**
 	 * init data to index.
-	 * @param indexConfig index config
+	 * @param indexName index name
 	 */
-	public void init(IndexConfig indexConfig) {
+	public void init(String indexName) {
+		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
 
-		this.elasticsearchPipe.createIndex(indexConfig);
-
-		String indexName = indexConfig.getIndexName();
-		String initSql = indexConfig.getInitSql();
+		this.elasticsearchPipe.createIndex(indexName);
 
 		LocalDateTime currentRefreshTime = LocalDateTime.now();
-		this.espipeTimer.reset(indexName, currentRefreshTime);
 
 		jdbcMetrics();
 
@@ -94,7 +94,7 @@ public class JdbcPipe {
 		sw.start();
 
 		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
-		this.jdbcTemplate.query(initSql, new Object[] { currentRefreshTime },
+		this.jdbcTemplate.query(indexConfig.getInitSql(), new Object[] { currentRefreshTime },
 				new int[] { JDBCType.TIMESTAMP.getVendorTypeNumber() }, (rs) -> {
 					Map<String, Object> flattenMap = createStandardFlattenMap(rs);
 					flattenMapList.add(flattenMap);
@@ -105,8 +105,8 @@ public class JdbcPipe {
 						if (logger.isDebugEnabled()) {
 							logger.debug("index data size {}", flattenMapList.size());
 						}
-						extendFlattenMap(indexConfig, flattenMapList);
-						this.elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+						extendFlattenMap(indexName, flattenMapList);
+						this.elasticsearchPipe.createDocument(indexName, flattenMapList);
 						flattenMapList.clear();
 					}
 
@@ -114,32 +114,41 @@ public class JdbcPipe {
 
 		// process the rest of data, like we have total 108538, the above will process
 		// 108500, the rest 38 will be processed here
-		if (flattenMapList.size() > 0) {
+		if (!flattenMapList.isEmpty()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("index data size {}", flattenMapList.size());
 			}
-			extendFlattenMap(indexConfig, flattenMapList);
-			this.elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+			extendFlattenMap(indexName, flattenMapList);
+			this.elasticsearchPipe.createDocument(indexName, flattenMapList);
 			flattenMapList.clear();
 		}
 
-		this.elasticsearchPipe.updateSettingsAfterInit(indexConfig);
+		this.elasticsearchPipe.updateSettingsAfterInit(indexName);
 		sw.stop();
+
+		// reset after init script finished, or sync script will create document, index
+		// settings will be changed
+		this.espipeTimer.reset(indexName, currentRefreshTime);
 		logger.info("Total time: {}s", sw.getTotalTimeSeconds());
 	}
 
 	/**
 	 * sync data to index.
-	 * @param indexConfig index config
+	 * @param indexName index name
 	 */
-	public void sync(IndexConfig indexConfig) {
-		String indexName = indexConfig.getIndexName();
-		String syncSql = indexConfig.getSyncSql();
+	public void sync(String indexName) {
+		if (this.elasticsearchPipe.isIndexExist(indexName)) {
+			logger.error("index {} not exist, please init index manually.", indexName);
+			return;
+		}
+
+		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
 
 		// get the last refresh time from the database
 		LocalDateTime lastRefreshTime = this.espipeTimer.findLastRefreshTime(indexName);
 		if (lastRefreshTime == null) {
-			throw new EspipeException("Please init index " + indexName + " first.");
+			logger.error("lastRefreshTime is null, please init index {} manually.", indexName);
+			return;
 		}
 
 		LocalDateTime currentRefreshTime = LocalDateTime.now();
@@ -150,7 +159,7 @@ public class JdbcPipe {
 		this.jdbcTemplate.query((conn) -> {
 			LocalDateTime decreasedLastRefreshTime = lastRefreshTime.minusSeconds(1);
 
-			final PreparedStatement ps = conn.prepareStatement(syncSql);
+			final PreparedStatement ps = conn.prepareStatement(indexConfig.getSyncSql());
 			ParameterMetaData parameterMetaData = ps.getParameterMetaData();
 			int paramCount = parameterMetaData.getParameterCount();
 			// the param count is depend on the sql, it should be even and is a pair of
@@ -179,8 +188,8 @@ public class JdbcPipe {
 			if (logger.isDebugEnabled()) {
 				logger.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
 			}
-			extendFlattenMap(indexConfig, flattenMapList);
-			this.elasticsearchPipe.createDocument(indexConfig, flattenMapList);
+			extendFlattenMap(indexName, flattenMapList);
+			this.elasticsearchPipe.createDocument(indexName, flattenMapList);
 			flattenMapList.clear();
 		}
 	}
@@ -206,10 +215,11 @@ public class JdbcPipe {
 
 	/**
 	 * put custom fields in flattenMap.
-	 * @param indexConfig index config
+	 * @param indexName index name
 	 * @param flattenMapList flatten Map List
 	 */
-	private void extendFlattenMap(IndexConfig indexConfig, List<Map<String, Object>> flattenMapList) {
+	private void extendFlattenMap(String indexName, List<Map<String, Object>> flattenMapList) {
+		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
 		String extensionColumn = indexConfig.getExtensionColumn();
 		String extensionSql = indexConfig.getExtensionSql();
 

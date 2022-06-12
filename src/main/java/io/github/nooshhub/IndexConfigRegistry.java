@@ -32,7 +32,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -58,20 +57,25 @@ public class IndexConfigRegistry {
 	public static final String INDEX_CONFIG_LOCATION = "es/";
 
 	private static final String INDEX_SETTINGS_NAME = "/settings.json";
+
 	private static final String INDEX_MAPPING_NAME = "/mapping.json";
+
 	private static final String INIT_SQL_NAME = "/sql/init.sql";
+
 	private static final String SYNC_SQL_NAME = "/sql/sync.sql";
+
 	private static final String DELETE_SQL_NAME = "/sql/delete.sql";
+
 	private static final String EXTENSION_SQL_NAME = "/sql/extension.sql";
+
 	private static final String SQL_PROPERTIES_NAME = "/sql/sql.properties";
+
 	private static final String ID_COLUMNS_NAME = "id_columns";
+
 	private static final String EXTENSION_COLUMN_NAME = "extension_column";
 
 	@Value("${spring.profiles.active:h2}")
 	private String profile;
-
-	@Autowired
-	private JdbcPipe jdbcPipe;
 
 	private final Map<String, IndexConfig> configs = new HashMap<>();
 
@@ -79,13 +83,23 @@ public class IndexConfigRegistry {
 		return this.configs;
 	}
 
+	/**
+	 * get index config.
+	 * @param indexName index Name
+	 * @return index config
+	 */
+	public IndexConfig getIndexConfig(String indexName) {
+		if (this.configs.containsKey(indexName)) {
+			return this.configs.get(indexName);
+		}
+		else {
+			throw new EspipeException(String.format("Index %s is not exist under /espipe", indexName));
+		}
+	}
+
 	@PostConstruct
 	public void init() {
 		scanIndexConfigs();
-
-		if (this.profile.equals("h2")) {
-			getIndexConfigs().values().forEach((indexConfig) -> this.jdbcPipe.init(indexConfig));
-		}
 	}
 
 	private void scanIndexConfigs() {

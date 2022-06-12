@@ -71,7 +71,7 @@ public class EspipeSampleWorker {
 				Thread.sleep(200);
 			}
 			catch (InterruptedException ex) {
-				logger.warn("Interrupted!", ex);
+				logger.warn("Interrupted!");
 				// Restore interrupted state...
 				Thread.currentThread().interrupt();
 			}

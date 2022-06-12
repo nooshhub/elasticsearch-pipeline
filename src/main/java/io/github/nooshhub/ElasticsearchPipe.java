@@ -75,14 +75,15 @@ public class ElasticsearchPipe {
 	@Autowired
 	private ElasticsearchAsyncClient esAsyncClient;
 
+	@Autowired
+	private IndexConfigRegistry indexConfigRegistry;
+
 	/**
 	 * create index.
-	 * @param indexConfig index config
+	 * @param indexName index name
 	 */
-	public void createIndex(IndexConfig indexConfig) {
-		final String indexName = indexConfig.getIndexName();
-		final String settingsPath = indexConfig.getIndexSettingsPath();
-		final String mappingPath = indexConfig.getIndexMappingPath();
+	public void createIndex(String indexName) {
+		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
 
 		// delete index if index is exist
 		try {
@@ -103,7 +104,7 @@ public class ElasticsearchPipe {
 			return;
 		}
 
-		try (InputStream indexSettingIns = IOUtils.getInputStream(settingsPath)) {
+		try (InputStream indexSettingIns = IOUtils.getInputStream(indexConfig.getIndexSettingsPath())) {
 			// create index with settings
 			this.esClient.indices().create(CreateIndexRequest.of((b) -> b.index(indexName).withJson(indexSettingIns)));
 			logger.info("Index {} is created", indexName);
@@ -113,7 +114,7 @@ public class ElasticsearchPipe {
 			return;
 		}
 
-		try (InputStream indexMappingIns = IOUtils.getInputStream(mappingPath)) {
+		try (InputStream indexMappingIns = IOUtils.getInputStream(indexConfig.getIndexMappingPath())) {
 			// update index mapping
 			this.esClient.indices()
 					.putMapping(PutMappingRequest.of((b) -> b.index(indexName).withJson(indexMappingIns)));
@@ -125,16 +126,14 @@ public class ElasticsearchPipe {
 	}
 
 	/**
-	 * Update Settings After Init is finished.
-	 * PUT /my-index-000001/_settings
-	 * {"index" : {"refresh_interval" : "1s"}}
-	 * @param indexConfig index Config
+	 * Update Settings After Init is finished. PUT /my-index-000001/_settings {"index" :
+	 * {"refresh_interval" : "1s"}}
+	 * @param indexName index name
 	 */
-	public void updateSettingsAfterInit(IndexConfig indexConfig) {
-		final String indexName = indexConfig.getIndexName();
+	public void updateSettingsAfterInit(String indexName) {
 		try {
-			this.esClient.indices().putSettings(PutIndicesSettingsRequest
-					.of((b) -> b.index(indexName).settings((settings) -> settings.refreshInterval((t) -> t.time("1s")))));
+			this.esClient.indices().putSettings(PutIndicesSettingsRequest.of(
+					(b) -> b.index(indexName).settings((settings) -> settings.refreshInterval((t) -> t.time("1s")))));
 		}
 		catch (IOException ex) {
 			ex.printStackTrace();
@@ -142,16 +141,29 @@ public class ElasticsearchPipe {
 	}
 
 	/**
+	 * check if index is exist.
+	 * @param indexName index name
+	 * @return true if index is exist, otherwise false
+	 */
+	public boolean isIndexExist(String indexName) {
+		try {
+			return this.esClient.indices().exists((builder) -> builder.index(indexName)).value();
+		}
+		catch (IOException ex) {
+			ex.printStackTrace();
+			return false;
+		}
+	}
+
+	/**
 	 * create one document.
-	 * @param indexConfig index Config
+	 * @param indexName index name
 	 * @param flattenMap flatten Map
 	 */
-	public void createDocument(IndexConfig indexConfig, Map<String, Object> flattenMap) {
-		String indexName = indexConfig.getIndexName();
-
+	public void createDocument(String indexName, Map<String, Object> flattenMap) {
 		try {
 			final String json = this.objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
-			final String documentId = getDocumentId(indexConfig, flattenMap);
+			final String documentId = getDocumentId(indexName, flattenMap);
 
 			IndexRequest<JsonData> req;
 			req = IndexRequest.of((b) -> b.index(indexName).id(documentId).withJson(new StringReader(json)));
@@ -165,16 +177,14 @@ public class ElasticsearchPipe {
 
 	/**
 	 * create multiple document.
-	 * @param indexConfig index Config
+	 * @param indexName index name
 	 * @param flattenMapList flatten Map list
 	 */
-	public void createDocument(IndexConfig indexConfig, List<Map<String, Object>> flattenMapList) {
-		String indexName = indexConfig.getIndexName();
-
+	public void createDocument(String indexName, List<Map<String, Object>> flattenMapList) {
 		List<BulkOperation> bulkOperations = new ArrayList<>();
 
 		for (Map<String, Object> flattenMap : flattenMapList) {
-			final String documentId = getDocumentId(indexConfig, flattenMap);
+			final String documentId = getDocumentId(indexName, flattenMap);
 
 			BulkOperation bulkOperation = BulkOperation
 					.of((b) -> b.create((c) -> c.index(indexName).id(documentId).document(flattenMap)));
@@ -194,7 +204,7 @@ public class ElasticsearchPipe {
 			}
 		}
 		catch (InterruptedException | ExecutionException ex) {
-			logger.warn("Interrupted!", ex);
+			logger.warn("Interrupted!");
 			// Restore interrupted state...
 			Thread.currentThread().interrupt();
 		}
@@ -203,11 +213,12 @@ public class ElasticsearchPipe {
 
 	/**
 	 * load id from index config, support columns combination strategy as id.
-	 * @param indexConfig index config
+	 * @param indexName index name
 	 * @param flattenMap flatten Map
 	 * @return document Id
 	 */
-	private String getDocumentId(IndexConfig indexConfig, Map<String, Object> flattenMap) {
+	private String getDocumentId(String indexName, Map<String, Object> flattenMap) {
+		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
 		String[] idColumns = indexConfig.getIdColumns().split(",");
 
 		final String documentId;

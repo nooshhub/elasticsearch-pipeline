@@ -19,6 +19,7 @@ package io.github.nooshhub;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
@@ -36,14 +37,20 @@ public class JdbcPipeTests {
 	@Autowired
 	private JdbcPipe jdbcPipe;
 
+	@Value("${spring.profiles.active:h2}")
+	private String profile;
+
 	@Test
 	public void init() {
-		this.indexConfigRegistry.getIndexConfigs().values().forEach((indexConfig) -> this.jdbcPipe.init(indexConfig));
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.init(indexName));
 	}
 
 	@Test
 	public void sync() {
-		this.indexConfigRegistry.getIndexConfigs().values().forEach((indexConfig) -> this.jdbcPipe.sync(indexConfig));
+		if (this.profile.equals("h2")) {
+			this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.init(indexName));
+		}
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.sync(indexName));
 	}
 
 }
