@@ -37,7 +37,7 @@ public class EspipeScheduler {
 
 	@Scheduled(fixedRate = 5000)
 	public void sync() {
-		this.indexConfigRegistry.getIndexConfigs().forEach((indexConfig) -> this.jdbcPipe.sync(indexConfig));
+		this.indexConfigRegistry.getIndexConfigs().values().forEach((indexConfig) -> this.jdbcPipe.sync(indexConfig));
 	}
 
 }

@@ -57,15 +57,25 @@ public class IndexConfigRegistry {
 	 */
 	public static final String INDEX_CONFIG_LOCATION = "es/";
 
+	private static final String INDEX_SETTINGS_NAME = "/settings.json";
+	private static final String INDEX_MAPPING_NAME = "/mapping.json";
+	private static final String INIT_SQL_NAME = "/sql/init.sql";
+	private static final String SYNC_SQL_NAME = "/sql/sync.sql";
+	private static final String DELETE_SQL_NAME = "/sql/delete.sql";
+	private static final String EXTENSION_SQL_NAME = "/sql/extension.sql";
+	private static final String SQL_PROPERTIES_NAME = "/sql/sql.properties";
+	private static final String ID_COLUMNS_NAME = "id_columns";
+	private static final String EXTENSION_COLUMN_NAME = "extension_column";
+
 	@Value("${spring.profiles.active:h2}")
 	private String profile;
 
 	@Autowired
 	private JdbcPipe jdbcPipe;
 
-	private final List<Map<String, String>> configs = new ArrayList<>();
+	private final Map<String, IndexConfig> configs = new HashMap<>();
 
-	public List<Map<String, String>> getIndexConfigs() {
+	public Map<String, IndexConfig> getIndexConfigs() {
 		return this.configs;
 	}
 
@@ -74,7 +84,7 @@ public class IndexConfigRegistry {
 		scanIndexConfigs();
 
 		if (this.profile.equals("h2")) {
-			getIndexConfigs().forEach((indexConfig) -> this.jdbcPipe.init(indexConfig));
+			getIndexConfigs().values().forEach((indexConfig) -> this.jdbcPipe.init(indexConfig));
 		}
 	}
 
@@ -86,21 +96,21 @@ public class IndexConfigRegistry {
 		List<String> indexNames = findIndexNames(rootDir);
 
 		for (String indexName : indexNames) {
-			Map<String, String> config = new HashMap<>();
-			config.put("indexName", indexName);
+			IndexConfig config = new IndexConfig();
+			config.setIndexName(indexName);
 
 			// add index settings and mappings
-			config.put("indexSettingsPath", rootDir + indexName + "/settings.json");
-			config.put("indexMappingPath", rootDir + indexName + "/mapping.json");
+			config.setIndexSettingsPath(rootDir + indexName + INDEX_SETTINGS_NAME);
+			config.setIndexMappingPath(rootDir + indexName + INDEX_MAPPING_NAME);
 
 			// add sql
-			config.put("initSql", IOUtils.getContent(rootDir + indexName + "/sql/init.sql"));
-			config.put("syncSql", IOUtils.getContent(rootDir + indexName + "/sql/sync.sql"));
-			config.put("deleteSql", IOUtils.getContent(rootDir + indexName + "/sql/delete.sql"));
-			config.put("extensionSql", IOUtils.getContent(rootDir + indexName + "/sql/extension.sql"));
+			config.setInitSql(IOUtils.getContent(rootDir + indexName + INIT_SQL_NAME));
+			config.setSyncSql(IOUtils.getContent(rootDir + indexName + SYNC_SQL_NAME));
+			config.setDeleteSql(IOUtils.getContent(rootDir + indexName + DELETE_SQL_NAME));
+			config.setExtensionSql(IOUtils.getContent(rootDir + indexName + EXTENSION_SQL_NAME));
 
 			// add sql.properties
-			String sqlPropertiesPath = rootDir + indexName + "/sql/sql.properties";
+			String sqlPropertiesPath = rootDir + indexName + SQL_PROPERTIES_NAME;
 			Properties sqlProperties = new Properties();
 			try (InputStream sqlPropertiesIns = Thread.currentThread().getContextClassLoader()
 					.getResourceAsStream(sqlPropertiesPath)) {
@@ -109,10 +119,10 @@ public class IndexConfigRegistry {
 			catch (IOException ex) {
 				ex.printStackTrace();
 			}
-			config.put("idColumns", sqlProperties.getProperty("id_columns"));
-			config.put("extensionColumn", sqlProperties.getProperty("extension_column"));
+			config.setIdColumns(sqlProperties.getProperty(ID_COLUMNS_NAME));
+			config.setExtensionColumn(sqlProperties.getProperty(EXTENSION_COLUMN_NAME));
 
-			this.configs.add(config);
+			this.configs.put(indexName, config);
 		}
 	}
 

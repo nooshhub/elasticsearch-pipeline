@@ -38,12 +38,12 @@ public class JdbcPipeTests {
 
 	@Test
 	public void init() {
-		this.indexConfigRegistry.getIndexConfigs().forEach((indexConfig) -> this.jdbcPipe.init(indexConfig));
+		this.indexConfigRegistry.getIndexConfigs().values().forEach((indexConfig) -> this.jdbcPipe.init(indexConfig));
 	}
 
 	@Test
 	public void sync() {
-		this.indexConfigRegistry.getIndexConfigs().forEach((indexConfig) -> this.jdbcPipe.sync(indexConfig));
+		this.indexConfigRegistry.getIndexConfigs().values().forEach((indexConfig) -> this.jdbcPipe.sync(indexConfig));
 	}
 
 }

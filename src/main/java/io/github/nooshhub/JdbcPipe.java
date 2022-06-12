@@ -78,12 +78,12 @@ public class JdbcPipe {
 	 * init data to index.
 	 * @param indexConfig index config
 	 */
-	public void init(Map<String, String> indexConfig) {
+	public void init(IndexConfig indexConfig) {
 
 		this.elasticsearchPipe.createIndex(indexConfig);
 
-		String indexName = indexConfig.get("indexName");
-		String initSql = indexConfig.get("initSql");
+		String indexName = indexConfig.getIndexName();
+		String initSql = indexConfig.getInitSql();
 
 		LocalDateTime currentRefreshTime = LocalDateTime.now();
 		this.espipeTimer.reset(indexName, currentRefreshTime);
@@ -132,9 +132,9 @@ public class JdbcPipe {
 	 * sync data to index.
 	 * @param indexConfig index config
 	 */
-	public void sync(Map<String, String> indexConfig) {
-		String indexName = indexConfig.get("indexName");
-		String syncSql = indexConfig.get("syncSql");
+	public void sync(IndexConfig indexConfig) {
+		String indexName = indexConfig.getIndexName();
+		String syncSql = indexConfig.getSyncSql();
 
 		// get the last refresh time from the database
 		LocalDateTime lastRefreshTime = this.espipeTimer.findLastRefreshTime(indexName);
@@ -209,9 +209,9 @@ public class JdbcPipe {
 	 * @param indexConfig index config
 	 * @param flattenMapList flatten Map List
 	 */
-	private void extendFlattenMap(Map<String, String> indexConfig, List<Map<String, Object>> flattenMapList) {
-		String extensionColumn = indexConfig.get("extensionColumn");
-		String extensionSql = indexConfig.get("extensionSql");
+	private void extendFlattenMap(IndexConfig indexConfig, List<Map<String, Object>> flattenMapList) {
+		String extensionColumn = indexConfig.getExtensionColumn();
+		String extensionSql = indexConfig.getExtensionSql();
 
 		List<String> extensionIds = new ArrayList<>(100);
 		for (Map<String, Object> flattenMap : flattenMapList) {
