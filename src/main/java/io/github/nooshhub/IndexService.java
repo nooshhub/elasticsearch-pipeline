@@ -17,19 +17,23 @@
 package io.github.nooshhub;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
- * Espipe Scheduler is used to trigger synchronization task.
- *
+ * Index Service.
  * @author Neal Shan
- * @since 6/4/2022
+ * @since 6/12/2022
  */
 @Service
-public class EspipeScheduler {
+public class IndexService {
+
+	private static final Logger logger = LoggerFactory.getLogger(IndexService.class);
 
 	@Autowired
 	private IndexConfigRegistry indexConfigRegistry;
@@ -37,14 +41,22 @@ public class EspipeScheduler {
 	@Autowired
 	private JdbcPipe jdbcPipe;
 
-	private final ExecutorService executorService = AbstractThreadPoolFactory.poolForSync();
+	private final ExecutorService executorService = AbstractThreadPoolFactory.poolForInit();
 
-	@Scheduled(fixedRate = 5000)
-	public void sync() {
-		// TODO: if init thread is exist, sync should not be performed
+	public void init() {
+		// TODO: if sync thread is exist, shut it down first
+
 		this.indexConfigRegistry.getIndexConfigs().keySet()
-				.forEach((indexName) -> this.executorService.execute(new SyncIndexThread(this.jdbcPipe, indexName)));
-		// TODO: shutdownhook for sync
+				.forEach((indexName) -> this.executorService.execute(new InitIndexThread(this.jdbcPipe, indexName)));
+		this.executorService.shutdown();
+		try {
+			this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		}
+		catch (InterruptedException ex) {
+			logger.warn("Interrupted!");
+			// Restore interrupted state...
+			Thread.currentThread().interrupt();
+		}
 	}
 
 }
