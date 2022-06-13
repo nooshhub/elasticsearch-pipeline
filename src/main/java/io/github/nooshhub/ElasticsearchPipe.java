@@ -131,6 +131,7 @@ public class ElasticsearchPipe {
 	 * @param indexName index name
 	 */
 	public void updateSettingsAfterInit(String indexName) {
+		logger.info("Update index settings to refresh_interval 1s");
 		try {
 			this.esClient.indices().putSettings(PutIndicesSettingsRequest.of(
 					(b) -> b.index(indexName).settings((settings) -> settings.refreshInterval((t) -> t.time("1s")))));
@@ -180,7 +181,7 @@ public class ElasticsearchPipe {
 	 * @param indexName index name
 	 * @param flattenMapList flatten Map list
 	 */
-	public void createDocument(String indexName, List<Map<String, Object>> flattenMapList) {
+	public CompletableFuture<BulkResponse> createDocument(String indexName, List<Map<String, Object>> flattenMapList) {
 		List<BulkOperation> bulkOperations = new ArrayList<>();
 
 		for (Map<String, Object> flattenMap : flattenMapList) {
@@ -193,22 +194,7 @@ public class ElasticsearchPipe {
 
 		BulkRequest bulkRequest = BulkRequest.of((b) -> b.operations(bulkOperations));
 
-		CompletableFuture<BulkResponse> bulkResFuture = this.esAsyncClient.bulk(bulkRequest);
-		BulkResponse bulkRes = null;
-		try {
-			bulkRes = bulkResFuture.get();
-			if (bulkRes.errors()) {
-				if (logger.isDebugEnabled()) {
-					logger.debug(bulkRes.toString());
-				}
-			}
-		}
-		catch (InterruptedException | ExecutionException ex) {
-			logger.warn("Interrupted!");
-			// Restore interrupted state...
-			Thread.currentThread().interrupt();
-		}
-
+		return this.esAsyncClient.bulk(bulkRequest);
 	}
 
 	/**

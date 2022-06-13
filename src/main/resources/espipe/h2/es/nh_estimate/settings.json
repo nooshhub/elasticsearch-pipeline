@@ -1,0 +1,25 @@
+{
+  "settings": {
+    "index": {
+      "refresh_interval" : "-1",
+      "number_of_shards": 5,
+      "number_of_replicas": 1
+    },
+    "analysis": {
+      "analyzer": {
+        "comma_analyzer": {
+          "type": "custom",
+          "tokenizer": "comma_tokenizer"
+        }
+      },
+      "tokenizer": {
+        "comma_tokenizer": {
+          "type": "pattern",
+          "pattern": ",",
+          "flags": "CASE_INSENSITIVE",
+          "group": -1
+        }
+      }
+    }
+  }
+}

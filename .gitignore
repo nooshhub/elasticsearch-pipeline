@@ -16,3 +16,5 @@ target
 
 # exclude produciton credentials
 application-oracle.yml
+
+log

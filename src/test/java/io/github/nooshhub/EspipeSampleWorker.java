@@ -44,7 +44,8 @@ public class EspipeSampleWorker {
 
 	private static final Logger logger = LoggerFactory.getLogger(EspipeSampleWorker.class);
 
-	private static final String INSERT = "insert into nh_project values (?, ?, ?, ?, ?)";
+	private static final String INSERT_PROJECT = "insert into nh_project values (?, ?, ?, ?, ?)";
+	private static final String INSERT_ESTIAMTE = "insert into nh_estimate values (?, ?, ?, ?, ?)";
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -53,7 +54,7 @@ public class EspipeSampleWorker {
 	private final AtomicInteger atomicInteger = new AtomicInteger(10);
 
 	@Scheduled(fixedRate = 5000)
-	public void create() {
+	public void createProjects() {
 		List<Object[]> data = new ArrayList<>();
 
 		for (int i = 0; i < 10; i++) {
@@ -74,7 +75,36 @@ public class EspipeSampleWorker {
 			data.add(args);
 		}
 
-		this.jdbcTemplate.batchUpdate(INSERT, data);
+		this.jdbcTemplate.batchUpdate(INSERT_PROJECT, data);
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("data from {} is prepared from {} to {}", data.get(0)[0], data.get(0)[3], data.get(9)[3]);
+		}
+	}
+
+	@Scheduled(fixedRate = 5000)
+	public void createEstimates() {
+		List<Object[]> data = new ArrayList<>();
+
+		for (int i = 0; i < 10; i++) {
+			Object[] args = new Object[5];
+			args[0] = this.atomicInteger.getAndIncrement();
+			args[1] = "estimate " + args[0];
+			args[2] = "1,2,3";
+			args[3] = Timestamp.valueOf(LocalDateTime.now());
+			args[4] = null;
+			try {
+				Thread.sleep(200);
+			}
+			catch (InterruptedException ex) {
+				logger.warn("Interrupted!");
+				// Restore interrupted state...
+				Thread.currentThread().interrupt();
+			}
+			data.add(args);
+		}
+
+		this.jdbcTemplate.batchUpdate(INSERT_ESTIAMTE, data);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("data from {} is prepared from {} to {}", data.get(0)[0], data.get(0)[3], data.get(9)[3]);
