@@ -43,9 +43,6 @@ public class CustomThreadFactory implements ThreadFactory {
 		if (t.isDaemon()) {
 			t.setDaemon(false);
 		}
-		if (t.getPriority() != Thread.NORM_PRIORITY) {
-			t.setPriority(Thread.NORM_PRIORITY);
-		}
 		return t;
 	}
 
