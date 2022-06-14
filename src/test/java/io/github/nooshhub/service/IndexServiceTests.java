@@ -14,43 +14,30 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.service;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * Unit tests for {@link JdbcPipeTests}
+ * Unit tests for {@link IndexServiceTests}
  *
  * @author Neal Shan
- * @since 5/31/2022
+ * @since 6/13/2022
  */
 @SpringBootTest(properties = "spring.profiles.active:h2")
-public class JdbcPipeTests {
+public class IndexServiceTests {
 
 	@Autowired
-	private IndexConfigRegistry indexConfigRegistry;
-
-	@Autowired
-	private JdbcPipe jdbcPipe;
-
-	@Value("${spring.profiles.active:h2}")
-	private String profile;
+	private IndexService indexService;
 
 	@Test
 	public void init() {
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.init(indexName));
-	}
-
-	@Test
-	public void sync() {
-		if (this.profile.equals("h2")) {
-			this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.init(indexName));
-		}
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.sync(indexName));
+		this.indexService.init();
+		// TODO: add assertions to check if index is exist
+		// TODO: add assertions to check if document is exist
 	}
 
 }

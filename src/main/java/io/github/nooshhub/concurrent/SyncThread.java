@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.concurrent;
+
+import io.github.nooshhub.dao.JdbcPipe;
 
 /**
- * Espipe Fields Mode.
+ * Init index thread.
  *
  * @author Neal Shan
- * @since 6/4/2022
+ * @since 6/12/2022
  */
-public enum EspipeFieldsMode {
+public class SyncThread implements Runnable {
 
-	/**
-	 * Constant that indicates convert standard fields to a flatten map.
-	 */
-	FLATTEN,
+	private final JdbcPipe jdbcPipe;
 
-	/**
-	 * Constant that indicates aggregate standard and custom fields to a string.
-	 */
-	ALL_IN_ONE,
+	private final String indexName;
 
-	/**
-	 * Constant that indicates aggregate custom fields to a string.
-	 */
-	CUSTOM_IN_ONE
+	public SyncThread(JdbcPipe jdbcPipe, String indexName) {
+		this.jdbcPipe = jdbcPipe;
+		this.indexName = indexName;
+	}
+
+	@Override
+	public void run() {
+		this.jdbcPipe.sync(this.indexName);
+	}
 
 }

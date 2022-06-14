@@ -14,33 +14,30 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.concurrent;
 
-import java.text.SimpleDateFormat;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.github.nooshhub.dao.JdbcPipe;
 
 /**
- * Jackson Configuration.
+ * Init index thread.
  *
  * @author Neal Shan
- * @since 5/31/2022
+ * @since 6/12/2022
  */
-@Configuration
-public class JacksonConfiguration {
+public class InitThread implements Runnable {
 
-	/**
-	 * create a object mapper bean.
-	 * @return object mapper bean
-	 */
-	@Bean
-	public ObjectMapper objectMapper() {
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
-		return objectMapper;
+	private final JdbcPipe jdbcPipe;
+
+	private final String indexName;
+
+	public InitThread(JdbcPipe jdbcPipe, String indexName) {
+		this.jdbcPipe = jdbcPipe;
+		this.indexName = indexName;
+	}
+
+	@Override
+	public void run() {
+		this.jdbcPipe.init(this.indexName);
 	}
 
 }

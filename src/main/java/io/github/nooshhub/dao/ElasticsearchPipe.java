@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.dao;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -31,14 +29,15 @@ import co.elastic.clients.elasticsearch._types.AcknowledgedResponse;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
-import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.PutIndicesSettingsRequest;
 import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
-import co.elastic.clients.json.JsonData;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.nooshhub.config.IndexConfig;
+import io.github.nooshhub.config.IndexConfigRegistry;
+import io.github.nooshhub.exception.EspipeException;
+import io.github.nooshhub.support.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +64,6 @@ import org.springframework.stereotype.Service;
 public class ElasticsearchPipe {
 
 	private static final Logger logger = LoggerFactory.getLogger(ElasticsearchPipe.class);
-
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@Autowired
 	private ElasticsearchClient esClient;
@@ -131,6 +127,7 @@ public class ElasticsearchPipe {
 	 * @param indexName index name
 	 */
 	public void updateSettingsAfterInit(String indexName) {
+		logger.info("Update index settings to refresh_interval 1s");
 		try {
 			this.esClient.indices().putSettings(PutIndicesSettingsRequest.of(
 					(b) -> b.index(indexName).settings((settings) -> settings.refreshInterval((t) -> t.time("1s")))));
@@ -159,28 +156,19 @@ public class ElasticsearchPipe {
 	 * create one document.
 	 * @param indexName index name
 	 * @param flattenMap flatten Map
+	 * @return bulk response completable future
 	 */
-	public void createDocument(String indexName, Map<String, Object> flattenMap) {
-		try {
-			final String json = this.objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(flattenMap);
-			final String documentId = getDocumentId(indexName, flattenMap);
-
-			IndexRequest<JsonData> req;
-			req = IndexRequest.of((b) -> b.index(indexName).id(documentId).withJson(new StringReader(json)));
-			this.esClient.index(req);
-
-		}
-		catch (IOException ex) {
-			ex.printStackTrace();
-		}
+	public CompletableFuture<BulkResponse> createDocument(String indexName, Map<String, Object> flattenMap) {
+		return createDocument(indexName, List.of(flattenMap));
 	}
 
 	/**
 	 * create multiple document.
 	 * @param indexName index name
 	 * @param flattenMapList flatten Map list
+	 * @return bulk response completable future
 	 */
-	public void createDocument(String indexName, List<Map<String, Object>> flattenMapList) {
+	public CompletableFuture<BulkResponse> createDocument(String indexName, List<Map<String, Object>> flattenMapList) {
 		List<BulkOperation> bulkOperations = new ArrayList<>();
 
 		for (Map<String, Object> flattenMap : flattenMapList) {
@@ -193,22 +181,7 @@ public class ElasticsearchPipe {
 
 		BulkRequest bulkRequest = BulkRequest.of((b) -> b.operations(bulkOperations));
 
-		CompletableFuture<BulkResponse> bulkResFuture = this.esAsyncClient.bulk(bulkRequest);
-		BulkResponse bulkRes = null;
-		try {
-			bulkRes = bulkResFuture.get();
-			if (bulkRes.errors()) {
-				if (logger.isDebugEnabled()) {
-					logger.debug(bulkRes.toString());
-				}
-			}
-		}
-		catch (InterruptedException | ExecutionException ex) {
-			logger.warn("Interrupted!");
-			// Restore interrupted state...
-			Thread.currentThread().interrupt();
-		}
-
+		return this.esAsyncClient.bulk(bulkRequest);
 	}
 
 	/**

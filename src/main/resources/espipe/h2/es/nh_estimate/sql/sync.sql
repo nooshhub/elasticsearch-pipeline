@@ -1,0 +1,1 @@
+select * from nh_estimate where coalesce(mod_date, create_date) > ? and coalesce(mod_date, create_date) < ?

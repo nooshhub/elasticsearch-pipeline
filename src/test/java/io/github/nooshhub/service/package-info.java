@@ -15,6 +15,6 @@
  */
 
 /**
- * Main entry.
+ * Test service layer.
  */
-package io.github.nooshhub;
+package io.github.nooshhub.service;

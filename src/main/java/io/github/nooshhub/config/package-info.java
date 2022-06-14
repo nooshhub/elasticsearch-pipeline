@@ -15,6 +15,6 @@
  */
 
 /**
- * Main entry.
+ * Configuration.
  */
-package io.github.nooshhub;
+package io.github.nooshhub.config;

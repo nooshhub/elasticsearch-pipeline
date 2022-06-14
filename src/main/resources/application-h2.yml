@@ -15,3 +15,5 @@ logging:
   level:
     root: info
     io.github.nooshhub: debug
+#  pattern:
+#    console:

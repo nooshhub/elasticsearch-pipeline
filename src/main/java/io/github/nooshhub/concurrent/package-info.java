@@ -15,6 +15,6 @@
  */
 
 /**
- * Main entry.
+ * Multiple threads.
  */
-package io.github.nooshhub;
+package io.github.nooshhub.concurrent;

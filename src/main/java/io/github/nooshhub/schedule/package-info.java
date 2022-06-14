@@ -14,30 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
 /**
- * Espipe Scheduler is used to trigger synchronization task.
- *
- * @author Neal Shan
- * @since 6/4/2022
+ * Scheduler.
  */
-@Service
-public class EspipeScheduler {
-
-	@Autowired
-	private IndexConfigRegistry indexConfigRegistry;
-
-	@Autowired
-	private JdbcPipe jdbcPipe;
-
-	@Scheduled(fixedRate = 5000)
-	public void sync() {
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexConfig) -> this.jdbcPipe.sync(indexConfig));
-	}
-
-}
+package io.github.nooshhub.schedule;

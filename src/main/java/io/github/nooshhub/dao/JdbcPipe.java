@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.dao;
 
 import java.sql.JDBCType;
 import java.sql.ParameterMetaData;
@@ -24,12 +24,19 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
+import co.elastic.clients.elasticsearch.core.BulkResponse;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.nooshhub.config.EspipeElasticsearchProperties;
+import io.github.nooshhub.config.IndexConfig;
+import io.github.nooshhub.config.IndexConfigRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +63,7 @@ public class JdbcPipe {
 	private ElasticsearchPipe elasticsearchPipe;
 
 	@Autowired
-	private EspipeTimer espipeTimer;
+	private EspipeTimerPipe espipeTimerPipe;
 
 	@Autowired
 	private EspipeElasticsearchProperties espipeElasticsearchProperties;
@@ -82,17 +89,17 @@ public class JdbcPipe {
 	 * @param indexName index name
 	 */
 	public void init(String indexName) {
-		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
-
-		this.elasticsearchPipe.createIndex(indexName);
-
-		LocalDateTime currentRefreshTime = LocalDateTime.now();
-
 		jdbcMetrics();
+
+		this.espipeTimerPipe.delete(indexName);
+		this.elasticsearchPipe.createIndex(indexName);
 
 		StopWatch sw = new StopWatch();
 		sw.start();
 
+		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
+		LocalDateTime currentRefreshTime = LocalDateTime.now(ZoneId.systemDefault());
+		List<CompletableFuture<BulkResponse>> futures = new ArrayList<>();
 		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
 		this.jdbcTemplate.query(indexConfig.getInitSql(), new Object[] { currentRefreshTime },
 				new int[] { JDBCType.TIMESTAMP.getVendorTypeNumber() }, (rs) -> {
@@ -106,29 +113,54 @@ public class JdbcPipe {
 							logger.debug("index data size {}", flattenMapList.size());
 						}
 						extendFlattenMap(indexName, flattenMapList);
-						this.elasticsearchPipe.createDocument(indexName, flattenMapList);
+						futures.add(this.elasticsearchPipe.createDocument(indexName, flattenMapList));
 						flattenMapList.clear();
 					}
 
 				});
 
-		// process the rest of data, like we have total 108538, the above will process
-		// 108500, the rest 38 will be processed here
+		// process the rest of data, like we have total 12038, the above will process
+		// 12000, the rest 38 will be processed here
 		if (!flattenMapList.isEmpty()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("index data size {}", flattenMapList.size());
 			}
 			extendFlattenMap(indexName, flattenMapList);
-			this.elasticsearchPipe.createDocument(indexName, flattenMapList);
+			futures.add(this.elasticsearchPipe.createDocument(indexName, flattenMapList));
 			flattenMapList.clear();
 		}
+
+		logger.info("Total bulk requests {} for index {}", futures.size(), indexName);
+		futures.forEach((bulkResFuture) -> {
+			try {
+				BulkResponse bulkRes = bulkResFuture.get();
+				if (bulkRes.errors()) {
+					bulkRes.items().forEach((bulkResponseItem) -> {
+						if (bulkResponseItem.error() != null) {
+							if (("version_conflict_engine_exception").equals(bulkResponseItem.error().type())) {
+								logger.warn(bulkResponseItem.error().reason());
+							}
+							else {
+								logger.error(bulkResponseItem.error().reason());
+							}
+						}
+					});
+				}
+			}
+			catch (InterruptedException | ExecutionException ex) {
+				logger.warn("Interrupted!");
+				// Restore interrupted state...
+				Thread.currentThread().interrupt();
+			}
+		});
 
 		this.elasticsearchPipe.updateSettingsAfterInit(indexName);
 		sw.stop();
 
 		// reset after init script finished, or sync script will create document, index
 		// settings will be changed
-		this.espipeTimer.reset(indexName, currentRefreshTime);
+		this.espipeTimerPipe.save(indexName, currentRefreshTime);
+		logger.info("Init index {} success", indexName);
 		logger.info("Total time: {}s", sw.getTotalTimeSeconds());
 	}
 
@@ -137,29 +169,28 @@ public class JdbcPipe {
 	 * @param indexName index name
 	 */
 	public void sync(String indexName) {
-		if (this.elasticsearchPipe.isIndexExist(indexName)) {
-			logger.error("index {} not exist, please init index manually.", indexName);
+		if (!this.elasticsearchPipe.isIndexExist(indexName)) {
+			logger.error("Index {} not exist, please init index manually.", indexName);
 			return;
 		}
 
-		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
-
-		// get the last refresh time from the database
-		LocalDateTime lastRefreshTime = this.espipeTimer.findLastRefreshTime(indexName);
+		// get the last refresh time from the database, to continue synchronizing
+		LocalDateTime lastRefreshTime = this.espipeTimerPipe.findLastRefreshTime(indexName);
 		if (lastRefreshTime == null) {
-			logger.error("lastRefreshTime is null, please init index {} manually.", indexName);
+			logger.warn("LastRefreshTime is null, please init index {} manually.", indexName);
 			return;
 		}
 
-		LocalDateTime currentRefreshTime = LocalDateTime.now();
+		LocalDateTime currentRefreshTime = LocalDateTime.now(ZoneId.systemDefault());
 
-		this.espipeTimer.reset(indexName, currentRefreshTime);
+		this.espipeTimerPipe.save(indexName, currentRefreshTime);
 
+		final String syncSql = this.indexConfigRegistry.getIndexConfig(indexName).getSyncSql();
 		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
 		this.jdbcTemplate.query((conn) -> {
 			LocalDateTime decreasedLastRefreshTime = lastRefreshTime.minusSeconds(1);
 
-			final PreparedStatement ps = conn.prepareStatement(indexConfig.getSyncSql());
+			final PreparedStatement ps = conn.prepareStatement(syncSql);
 			ParameterMetaData parameterMetaData = ps.getParameterMetaData();
 			int paramCount = parameterMetaData.getParameterCount();
 			// the param count is depend on the sql, it should be even and is a pair of
@@ -184,12 +215,33 @@ public class JdbcPipe {
 			flattenMapList.add(flattenMap);
 		});
 
-		if (flattenMapList.size() > 0) {
+		if (!flattenMapList.isEmpty()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
 			}
 			extendFlattenMap(indexName, flattenMapList);
-			this.elasticsearchPipe.createDocument(indexName, flattenMapList);
+			CompletableFuture<BulkResponse> bulkResFuture = this.elasticsearchPipe.createDocument(indexName,
+					flattenMapList);
+			BulkResponse bulkRes = null;
+			try {
+				bulkRes = bulkResFuture.get();
+				bulkRes.items().forEach((bulkResponseItem) -> {
+					if (bulkResponseItem.error() != null) {
+						if (("version_conflict_engine_exception").equals(bulkResponseItem.error().type())) {
+							logger.warn(bulkResponseItem.error().reason());
+						}
+						else {
+							logger.error(bulkResponseItem.error().reason());
+						}
+					}
+				});
+			}
+			catch (InterruptedException | ExecutionException ex) {
+				logger.warn("Interrupted!");
+				// Restore interrupted state...
+				Thread.currentThread().interrupt();
+			}
+
 			flattenMapList.clear();
 		}
 	}
@@ -230,9 +282,9 @@ public class JdbcPipe {
 			}
 		}
 
-		if (extensionIds.size() > 0) {
+		if (!extensionIds.isEmpty()) {
 			extensionSql = extensionSql.replace("?", String.join(",", extensionIds));
-			if (EspipeFieldsMode.FLATTEN.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
+			if (FieldsMode.FLATTEN.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 
 				Map<String, Map<String, Object>> customIdToCustomFlattenMap = new HashMap<>();
 
@@ -257,7 +309,7 @@ public class JdbcPipe {
 					}
 				}
 			}
-			else if (EspipeFieldsMode.CUSTOM_IN_ONE.toString()
+			else if (FieldsMode.CUSTOM_IN_ONE.toString()
 					.equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 				Map<Object, StringBuilder> customIdToSbMap = new HashMap<>();
 
@@ -285,6 +337,25 @@ public class JdbcPipe {
 				}
 			}
 		}
+
+	}
+
+	enum FieldsMode {
+
+		/**
+		 * Constant that indicates convert standard fields to a flatten map.
+		 */
+		FLATTEN,
+
+		/**
+		 * Constant that indicates aggregate standard and custom fields to a string.
+		 */
+		ALL_IN_ONE,
+
+		/**
+		 * Constant that indicates aggregate custom fields to a string.
+		 */
+		CUSTOM_IN_ONE
 
 	}
 

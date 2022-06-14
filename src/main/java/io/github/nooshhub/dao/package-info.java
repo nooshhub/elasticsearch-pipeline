@@ -15,6 +15,7 @@
  */
 
 /**
- * Main entry.
+ * Dao layer.
+ * Basically for access data source object.
  */
-package io.github.nooshhub;
+package io.github.nooshhub.dao;

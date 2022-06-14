@@ -14,7 +14,23 @@
  * limitations under the License.
  */
 
+package io.github.nooshhub.exception;
+
 /**
- * Main entry.
+ * Espipe Exception.
+ *
+ * @author Neal Shan
+ * @since 6/1/2022
  */
-package io.github.nooshhub;
+public class EspipeException extends RuntimeException {
+
+	public EspipeException(String message) {
+		super(message);
+	}
+
+	@Override
+	public Throwable fillInStackTrace() {
+		return this;
+	}
+
+}
