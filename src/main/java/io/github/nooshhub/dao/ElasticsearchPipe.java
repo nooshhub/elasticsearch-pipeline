@@ -156,9 +156,10 @@ public class ElasticsearchPipe {
 	 * create one document.
 	 * @param indexName index name
 	 * @param flattenMap flatten Map
+	 * @return bulk response completable future
 	 */
-	public void createDocument(String indexName, Map<String, Object> flattenMap) {
-		createDocument(indexName, List.of(flattenMap));
+	public CompletableFuture<BulkResponse> createDocument(String indexName, Map<String, Object> flattenMap) {
+		return createDocument(indexName, List.of(flattenMap));
 	}
 
 	/**
