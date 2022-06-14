@@ -15,6 +15,6 @@
  */
 
 /**
- * Main entry.
+ * Exceptions.
  */
-package io.github.nooshhub;
+package io.github.nooshhub.exception;

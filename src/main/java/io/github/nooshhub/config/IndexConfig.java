@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.config;
 
 /**
  * Index configuration for init index script and sync sql.

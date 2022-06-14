@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.service;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
+import io.github.nooshhub.concurrent.InitThread;
+import io.github.nooshhub.config.IndexConfigRegistry;
+import io.github.nooshhub.dao.JdbcPipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +52,7 @@ public class IndexService {
 		// TODO: if sync thread is exist, shut it down first
 
 		this.indexConfigRegistry.getIndexConfigs().keySet()
-				.forEach((indexName) -> this.executorService.execute(new InitIndexThread(this.jdbcPipe, indexName)));
+				.forEach((indexName) -> this.executorService.execute(new InitThread(this.jdbcPipe, indexName)));
 
 		this.executorService.shutdown();
 		try {

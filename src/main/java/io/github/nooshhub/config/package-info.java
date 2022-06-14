@@ -14,30 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
-
-import org.junit.jupiter.api.Test;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-
 /**
- * Unit tests for {@link IndexServiceTests}
- *
- * @author Neal Shan
- * @since 6/13/2022
+ * Configuration.
  */
-@SpringBootTest(properties = "spring.profiles.active:h2")
-public class IndexServiceTests {
-
-	@Autowired
-	private IndexService indexService;
-
-	@Test
-	public void init() {
-		this.indexService.init();
-		// TODO: add assertions to check if index is exist
-		// TODO: add assertions to check if document is exist
-	}
-
-}
+package io.github.nooshhub.config;

@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
-
 /**
- * Espipe Exception.
- *
- * @author Neal Shan
- * @since 6/1/2022
+ * Scheduler.
  */
-public class EspipeException extends RuntimeException {
-
-	public EspipeException(String message) {
-		super(message);
-	}
-
-	@Override
-	public Throwable fillInStackTrace() {
-		return this;
-	}
-
-}
+package io.github.nooshhub.schedule;

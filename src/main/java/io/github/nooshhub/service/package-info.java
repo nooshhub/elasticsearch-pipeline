@@ -14,28 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
-
 /**
- * Init index thread.
- *
- * @author Neal Shan
- * @since 6/12/2022
+ * Service layer.
  */
-public class SyncIndexThread implements Runnable {
-
-	private final JdbcPipe jdbcPipe;
-
-	private final String indexName;
-
-	public SyncIndexThread(JdbcPipe jdbcPipe, String indexName) {
-		this.jdbcPipe = jdbcPipe;
-		this.indexName = indexName;
-	}
-
-	@Override
-	public void run() {
-		this.jdbcPipe.sync(this.indexName);
-	}
-
-}
+package io.github.nooshhub.service;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.concurrent;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -34,13 +34,13 @@ public abstract class AbstractThreadPoolFactory {
 	public static ThreadPoolExecutor poolForInit() {
 		final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 3;
 		return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-				new LinkedBlockingQueue<Runnable>(), new NhThreadFactory("init"));
+				new LinkedBlockingQueue<Runnable>(), new CustomThreadFactory("init"));
 	}
 
 	public static ThreadPoolExecutor poolForSync() {
 		final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 1;
 		return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-				new LinkedBlockingQueue<Runnable>(), new NhThreadFactory("sync"));
+				new LinkedBlockingQueue<Runnable>(), new CustomThreadFactory("sync"));
 	}
 
 }

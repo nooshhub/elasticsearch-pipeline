@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.concurrent;
+
+import io.github.nooshhub.dao.JdbcPipe;
 
 /**
  * Init index thread.
@@ -22,20 +24,20 @@ package io.github.nooshhub;
  * @author Neal Shan
  * @since 6/12/2022
  */
-public class InitIndexThread implements Runnable {
+public class SyncThread implements Runnable {
 
 	private final JdbcPipe jdbcPipe;
 
 	private final String indexName;
 
-	public InitIndexThread(JdbcPipe jdbcPipe, String indexName) {
+	public SyncThread(JdbcPipe jdbcPipe, String indexName) {
 		this.jdbcPipe = jdbcPipe;
 		this.indexName = indexName;
 	}
 
 	@Override
 	public void run() {
-		this.jdbcPipe.init(this.indexName);
+		this.jdbcPipe.sync(this.indexName);
 	}
 
 }

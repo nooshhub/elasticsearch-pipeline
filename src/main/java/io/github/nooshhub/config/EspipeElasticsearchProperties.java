@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

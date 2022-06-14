@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.dao;
 
 import java.sql.JDBCType;
 import java.sql.ParameterMetaData;
@@ -33,6 +33,9 @@ import java.util.concurrent.ExecutionException;
 
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.nooshhub.config.EspipeElasticsearchProperties;
+import io.github.nooshhub.config.IndexConfig;
+import io.github.nooshhub.config.IndexConfigRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +62,7 @@ public class JdbcPipe {
 	private ElasticsearchPipe elasticsearchPipe;
 
 	@Autowired
-	private EspipeTimer espipeTimer;
+	private EspipeTimerPipe espipeTimerPipe;
 
 	@Autowired
 	private EspipeElasticsearchProperties espipeElasticsearchProperties;
@@ -87,7 +90,7 @@ public class JdbcPipe {
 	public void init(String indexName) {
 		jdbcMetrics();
 
-		this.espipeTimer.delete(indexName);
+		this.espipeTimerPipe.delete(indexName);
 		this.elasticsearchPipe.createIndex(indexName);
 
 		StopWatch sw = new StopWatch();
@@ -155,7 +158,7 @@ public class JdbcPipe {
 
 		// reset after init script finished, or sync script will create document, index
 		// settings will be changed
-		this.espipeTimer.save(indexName, currentRefreshTime);
+		this.espipeTimerPipe.save(indexName, currentRefreshTime);
 		logger.info("Init index {} success", indexName);
 		logger.info("Total time: {}s", sw.getTotalTimeSeconds());
 	}
@@ -171,7 +174,7 @@ public class JdbcPipe {
 		}
 
 		// get the last refresh time from the database, to continue synchronizing
-		LocalDateTime lastRefreshTime = this.espipeTimer.findLastRefreshTime(indexName);
+		LocalDateTime lastRefreshTime = this.espipeTimerPipe.findLastRefreshTime(indexName);
 		if (lastRefreshTime == null) {
 			logger.warn("LastRefreshTime is null, please init index {} manually.", indexName);
 			return;
@@ -179,7 +182,7 @@ public class JdbcPipe {
 
 		LocalDateTime currentRefreshTime = LocalDateTime.now();
 
-		this.espipeTimer.save(indexName, currentRefreshTime);
+		this.espipeTimerPipe.save(indexName, currentRefreshTime);
 
 		final String syncSql = this.indexConfigRegistry.getIndexConfig(indexName).getSyncSql();
 		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
@@ -280,7 +283,7 @@ public class JdbcPipe {
 
 		if (!extensionIds.isEmpty()) {
 			extensionSql = extensionSql.replace("?", String.join(",", extensionIds));
-			if (EspipeFieldsMode.FLATTEN.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
+			if (FieldsMode.FLATTEN.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 
 				Map<String, Map<String, Object>> customIdToCustomFlattenMap = new HashMap<>();
 
@@ -305,7 +308,7 @@ public class JdbcPipe {
 					}
 				}
 			}
-			else if (EspipeFieldsMode.CUSTOM_IN_ONE.toString()
+			else if (FieldsMode.CUSTOM_IN_ONE.toString()
 					.equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 				Map<Object, StringBuilder> customIdToSbMap = new HashMap<>();
 
@@ -333,6 +336,25 @@ public class JdbcPipe {
 				}
 			}
 		}
+
+	}
+
+	enum FieldsMode {
+
+		/**
+		 * Constant that indicates convert standard fields to a flatten map.
+		 */
+		FLATTEN,
+
+		/**
+		 * Constant that indicates aggregate standard and custom fields to a string.
+		 */
+		ALL_IN_ONE,
+
+		/**
+		 * Constant that indicates aggregate custom fields to a string.
+		 */
+		CUSTOM_IN_ONE
 
 	}
 

@@ -14,33 +14,23 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
-
-import java.text.SimpleDateFormat;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package io.github.nooshhub.exception;
 
 /**
- * Jackson Configuration.
+ * Espipe Exception.
  *
  * @author Neal Shan
- * @since 5/31/2022
+ * @since 6/1/2022
  */
-@Configuration
-public class JacksonConfiguration {
+public class EspipeException extends RuntimeException {
 
-	/**
-	 * create a object mapper bean.
-	 * @return object mapper bean
-	 */
-	@Bean
-	public ObjectMapper objectMapper() {
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
-		return objectMapper;
+	public EspipeException(String message) {
+		super(message);
+	}
+
+	@Override
+	public Throwable fillInStackTrace() {
+		return this;
 	}
 
 }

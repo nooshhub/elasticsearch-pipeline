@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.schedule;
 
 import java.util.concurrent.ExecutorService;
+
+import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
+import io.github.nooshhub.concurrent.SyncThread;
+import io.github.nooshhub.config.IndexConfigRegistry;
+import io.github.nooshhub.dao.JdbcPipe;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,7 +34,7 @@ import org.springframework.stereotype.Service;
  * @since 6/4/2022
  */
 @Service
-public class EspipeScheduler {
+public class SyncScheduler {
 
 	@Autowired
 	private IndexConfigRegistry indexConfigRegistry;
@@ -43,7 +48,7 @@ public class EspipeScheduler {
 	public void sync() {
 		// TODO: if init thread is exist, sync should not be performed
 		this.indexConfigRegistry.getIndexConfigs().keySet()
-				.forEach((indexName) -> this.executorService.execute(new SyncIndexThread(this.jdbcPipe, indexName)));
+				.forEach((indexName) -> this.executorService.execute(new SyncThread(this.jdbcPipe, indexName)));
 		// TODO: shutdownhook for sync
 	}
 

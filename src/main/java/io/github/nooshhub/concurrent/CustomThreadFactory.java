@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.concurrent;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Neal Shan
  * @since 6/13/2022
  */
-public class NhThreadFactory implements ThreadFactory {
+public class CustomThreadFactory implements ThreadFactory {
 
 	private final ThreadGroup group;
 
@@ -33,7 +33,7 @@ public class NhThreadFactory implements ThreadFactory {
 
 	private final String namePrefix;
 
-	public NhThreadFactory(String prefix) {
+	public CustomThreadFactory(String prefix) {
 		SecurityManager s = System.getSecurityManager();
 		this.group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
 		this.namePrefix = prefix + "-t-";

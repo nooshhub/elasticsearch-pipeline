@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.support;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;

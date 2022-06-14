@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.dao;
 
 import java.time.LocalDateTime;
 
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
  * @since 6/3/2022
  */
 @Service
-public class EspipeTimer {
+public class EspipeTimerPipe {
 
 	private static final String FIND_LAST_REFRESH_TIME_SQL = "select last_refresh_time from espipe_timer where index_name = ? ";
 

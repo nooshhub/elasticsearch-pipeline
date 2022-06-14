@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
+package io.github.nooshhub.support;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
+
+import io.github.nooshhub.exception.EspipeException;
 
 /**
  * IO Utils.

@@ -15,6 +15,6 @@
  */
 
 /**
- * Main entry.
+ * Test dao layer.
  */
-package io.github.nooshhub;
+package io.github.nooshhub.dao;
