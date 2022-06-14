@@ -87,6 +87,7 @@ public class JdbcPipe {
 	public void init(String indexName) {
 		jdbcMetrics();
 
+		this.espipeTimer.delete(indexName);
 		this.elasticsearchPipe.createIndex(indexName);
 
 		StopWatch sw = new StopWatch();
@@ -154,7 +155,7 @@ public class JdbcPipe {
 
 		// reset after init script finished, or sync script will create document, index
 		// settings will be changed
-		this.espipeTimer.reset(indexName, currentRefreshTime);
+		this.espipeTimer.save(indexName, currentRefreshTime);
 		logger.info("Init index {} success", indexName);
 		logger.info("Total time: {}s", sw.getTotalTimeSeconds());
 	}
@@ -178,7 +179,7 @@ public class JdbcPipe {
 
 		LocalDateTime currentRefreshTime = LocalDateTime.now();
 
-		this.espipeTimer.reset(indexName, currentRefreshTime);
+		this.espipeTimer.save(indexName, currentRefreshTime);
 
 		final String syncSql = this.indexConfigRegistry.getIndexConfig(indexName).getSyncSql();
 		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
@@ -220,12 +221,16 @@ public class JdbcPipe {
 			BulkResponse bulkRes = null;
 			try {
 				bulkRes = bulkResFuture.get();
-				if (bulkRes.errors()) {
-					logger.error("Sync index {} fail, {}", indexName, bulkRes.toString());
-				}
-				else {
-					logger.info("Sync index {} success", indexName);
-				}
+				bulkRes.items().forEach((bulkResponseItem) -> {
+					if (bulkResponseItem.error() != null) {
+						if (bulkResponseItem.error().type().equals("version_conflict_engine_exception")) {
+							logger.warn(bulkResponseItem.error().reason());
+						}
+						else {
+							logger.error(bulkResponseItem.error().reason());
+						}
+					}
+				});
 			}
 			catch (InterruptedException | ExecutionException ex) {
 				logger.warn("Interrupted!");

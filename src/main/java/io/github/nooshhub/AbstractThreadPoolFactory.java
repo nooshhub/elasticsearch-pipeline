@@ -34,13 +34,13 @@ public abstract class AbstractThreadPoolFactory {
 	public static ThreadPoolExecutor poolForInit() {
 		final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 3;
 		return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-				new LinkedBlockingQueue<Runnable>());
+				new LinkedBlockingQueue<Runnable>(), new NhThreadFactory("init"));
 	}
 
 	public static ThreadPoolExecutor poolForSync() {
 		final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 1;
 		return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-				new LinkedBlockingQueue<Runnable>());
+				new LinkedBlockingQueue<Runnable>(), new NhThreadFactory("sync"));
 	}
 
 }

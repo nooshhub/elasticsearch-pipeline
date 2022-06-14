@@ -38,6 +38,8 @@ public class EspipeTimer {
 
 	private static final String UPDATE = "update espipe_timer set last_refresh_time = ? where index_name = ?";
 
+	private static final String DELETE = "delete from espipe_timer where index_name = ?";
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
@@ -46,7 +48,7 @@ public class EspipeTimer {
 	 * @param indexName index name
 	 * @param currentRefreshTime current refresh time
 	 */
-	public void reset(String indexName, LocalDateTime currentRefreshTime) {
+	public void save(String indexName, LocalDateTime currentRefreshTime) {
 		LocalDateTime lastRefreshTime = findLastRefreshTime(indexName);
 		if (lastRefreshTime == null) {
 			this.jdbcTemplate.update(INSERT, indexName, currentRefreshTime);
@@ -54,6 +56,14 @@ public class EspipeTimer {
 		else {
 			this.jdbcTemplate.update(UPDATE, currentRefreshTime, indexName);
 		}
+	}
+
+	/**
+	 * delete the last refresh time by index name.
+	 * @param indexName index name
+	 */
+	public void delete(String indexName) {
+		this.jdbcTemplate.update(DELETE, indexName);
 	}
 
 	/**

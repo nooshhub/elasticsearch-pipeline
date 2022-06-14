@@ -79,7 +79,8 @@ public class EspipeSampleWorker {
 		this.jdbcTemplate.batchUpdate(INSERT_PROJECT, data);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("data from {} is prepared from {} to {}", data.get(0)[0], data.get(0)[3], data.get(9)[3]);
+			logger.debug("data from {} is prepared for {} from {} to {}", data.get(0)[0], "nh_project", data.get(0)[3],
+					data.get(9)[3]);
 		}
 	}
 
@@ -108,7 +109,8 @@ public class EspipeSampleWorker {
 		this.jdbcTemplate.batchUpdate(INSERT_ESTIAMTE, data);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("data from {} is prepared from {} to {}", data.get(0)[0], data.get(0)[3], data.get(9)[3]);
+			logger.debug("data from {} is prepared for {} from {} to {}", data.get(0)[0], "nh_estimate", data.get(0)[3],
+					data.get(9)[3]);
 		}
 	}
 
