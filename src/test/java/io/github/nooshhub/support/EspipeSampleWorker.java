@@ -18,6 +18,7 @@ package io.github.nooshhub.support;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -63,7 +64,7 @@ public class EspipeSampleWorker {
 			args[0] = this.atomicInteger.getAndIncrement();
 			args[1] = "project " + args[0];
 			args[2] = "1,2,3";
-			args[3] = Timestamp.valueOf(LocalDateTime.now());
+			args[3] = Timestamp.valueOf(LocalDateTime.now(ZoneId.systemDefault()));
 			args[4] = null;
 			try {
 				Thread.sleep(200);
@@ -93,7 +94,7 @@ public class EspipeSampleWorker {
 			args[0] = this.atomicInteger.getAndIncrement();
 			args[1] = "estimate " + args[0];
 			args[2] = "1,2,3";
-			args[3] = Timestamp.valueOf(LocalDateTime.now());
+			args[3] = Timestamp.valueOf(LocalDateTime.now(ZoneId.systemDefault()));
 			args[4] = null;
 			try {
 				Thread.sleep(200);

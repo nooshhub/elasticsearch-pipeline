@@ -24,6 +24,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,7 +98,7 @@ public class JdbcPipe {
 		sw.start();
 
 		IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
-		LocalDateTime currentRefreshTime = LocalDateTime.now();
+		LocalDateTime currentRefreshTime = LocalDateTime.now(ZoneId.systemDefault());
 		List<CompletableFuture<BulkResponse>> futures = new ArrayList<>();
 		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
 		this.jdbcTemplate.query(indexConfig.getInitSql(), new Object[] { currentRefreshTime },
@@ -180,7 +181,7 @@ public class JdbcPipe {
 			return;
 		}
 
-		LocalDateTime currentRefreshTime = LocalDateTime.now();
+		LocalDateTime currentRefreshTime = LocalDateTime.now(ZoneId.systemDefault());
 
 		this.espipeTimerPipe.save(indexName, currentRefreshTime);
 
