@@ -16,11 +16,9 @@
 
 package io.github.nooshhub;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import co.elastic.clients.elasticsearch.core.BulkResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

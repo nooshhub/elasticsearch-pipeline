@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -180,6 +179,7 @@ public class ElasticsearchPipe {
 	 * create multiple document.
 	 * @param indexName index name
 	 * @param flattenMapList flatten Map list
+	 * @return bulk response completable future
 	 */
 	public CompletableFuture<BulkResponse> createDocument(String indexName, List<Map<String, Object>> flattenMapList) {
 		List<BulkOperation> bulkOperations = new ArrayList<>();

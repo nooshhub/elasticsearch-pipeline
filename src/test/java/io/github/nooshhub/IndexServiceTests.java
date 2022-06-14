@@ -35,6 +35,9 @@ public class IndexServiceTests {
 
 	@Test
 	public void init() {
-		indexService.init();
+		this.indexService.init();
+		// TODO: add assertions to check if index is exist
+		// TODO: add assertions to check if document is exist
 	}
+
 }

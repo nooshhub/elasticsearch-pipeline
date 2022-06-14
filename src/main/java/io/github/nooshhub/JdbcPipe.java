@@ -126,20 +126,21 @@ public class JdbcPipe {
 		}
 
 		logger.info("Total bulk requests {} for index {}", futures.size(), indexName);
-		futures.forEach(bulkResFuture -> {
+		futures.forEach((bulkResFuture) -> {
 			try {
 				BulkResponse bulkRes = bulkResFuture.get();
 				if (bulkRes.errors()) {
-					bulkRes.items().forEach(bulkResponseItem -> {
+					bulkRes.items().forEach((bulkResponseItem) -> {
 						if (bulkResponseItem.error() != null) {
 							if (bulkResponseItem.error().type().equals("version_conflict_engine_exception")) {
 								logger.warn(bulkResponseItem.error().reason());
-							} else {
+							}
+							else {
 								logger.error(bulkResponseItem.error().reason());
 							}
 						}
 					});
-				} 
+				}
 			}
 			catch (InterruptedException | ExecutionException ex) {
 				logger.warn("Interrupted!");
@@ -214,13 +215,15 @@ public class JdbcPipe {
 				logger.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
 			}
 			extendFlattenMap(indexName, flattenMapList);
-			CompletableFuture<BulkResponse> bulkResFuture = this.elasticsearchPipe.createDocument(indexName, flattenMapList);
+			CompletableFuture<BulkResponse> bulkResFuture = this.elasticsearchPipe.createDocument(indexName,
+					flattenMapList);
 			BulkResponse bulkRes = null;
 			try {
 				bulkRes = bulkResFuture.get();
 				if (bulkRes.errors()) {
 					logger.error("Sync index {} fail, {}", indexName, bulkRes.toString());
-				} else {
+				}
+				else {
 					logger.info("Sync index {} success", indexName);
 				}
 			}

@@ -45,6 +45,7 @@ public class EspipeSampleWorker {
 	private static final Logger logger = LoggerFactory.getLogger(EspipeSampleWorker.class);
 
 	private static final String INSERT_PROJECT = "insert into nh_project values (?, ?, ?, ?, ?)";
+
 	private static final String INSERT_ESTIAMTE = "insert into nh_estimate values (?, ?, ?, ?, ?)";
 
 	@Autowired

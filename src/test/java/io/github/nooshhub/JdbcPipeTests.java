@@ -43,6 +43,8 @@ public class JdbcPipeTests {
 	@Test
 	public void init() {
 		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.init(indexName));
+		// TODO: add assertions to check if index is exist
+		// TODO: add assertions to check if document is exist
 	}
 
 	@Test
@@ -51,6 +53,8 @@ public class JdbcPipeTests {
 			this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.init(indexName));
 		}
 		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.sync(indexName));
+		// TODO: add assertions to check if index is exist
+		// TODO: add assertions to check if document is exist
 	}
 
 }
