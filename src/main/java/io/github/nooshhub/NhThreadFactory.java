@@ -27,8 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class NhThreadFactory implements ThreadFactory {
 
-	private static final AtomicInteger poolNumber = new AtomicInteger(1);
-
 	private final ThreadGroup group;
 
 	private final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -38,7 +36,7 @@ public class NhThreadFactory implements ThreadFactory {
 	public NhThreadFactory(String prefix) {
 		SecurityManager s = System.getSecurityManager();
 		this.group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-		this.namePrefix = prefix + "-pool-" + poolNumber.getAndIncrement() + "-thread-";
+		this.namePrefix = prefix + "-t-";
 	}
 
 	public Thread newThread(Runnable r) {
