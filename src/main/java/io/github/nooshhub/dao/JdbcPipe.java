@@ -137,7 +137,7 @@ public class JdbcPipe {
 				if (bulkRes.errors()) {
 					bulkRes.items().forEach((bulkResponseItem) -> {
 						if (bulkResponseItem.error() != null) {
-							if (bulkResponseItem.error().type().equals("version_conflict_engine_exception")) {
+							if (("version_conflict_engine_exception").equals(bulkResponseItem.error().type())) {
 								logger.warn(bulkResponseItem.error().reason());
 							}
 							else {
@@ -227,7 +227,7 @@ public class JdbcPipe {
 				bulkRes = bulkResFuture.get();
 				bulkRes.items().forEach((bulkResponseItem) -> {
 					if (bulkResponseItem.error() != null) {
-						if (bulkResponseItem.error().type().equals("version_conflict_engine_exception")) {
+						if (("version_conflict_engine_exception").equals(bulkResponseItem.error().type())) {
 							logger.warn(bulkResponseItem.error().reason());
 						}
 						else {
