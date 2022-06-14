@@ -34,8 +34,7 @@ public class CustomThreadFactory implements ThreadFactory {
 	private final String namePrefix;
 
 	public CustomThreadFactory(String prefix) {
-		SecurityManager s = System.getSecurityManager();
-		this.group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+		this.group = Thread.currentThread().getThreadGroup();
 		this.namePrefix = prefix + "-t-";
 	}
 
