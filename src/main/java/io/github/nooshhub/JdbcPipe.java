@@ -211,7 +211,7 @@ public class JdbcPipe {
 			flattenMapList.add(flattenMap);
 		});
 
-		if (flattenMapList.size() > 0) {
+		if (!flattenMapList.isEmpty()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
 			}
@@ -278,7 +278,7 @@ public class JdbcPipe {
 			}
 		}
 
-		if (extensionIds.size() > 0) {
+		if (!extensionIds.isEmpty()) {
 			extensionSql = extensionSql.replace("?", String.join(",", extensionIds));
 			if (EspipeFieldsMode.FLATTEN.toString().equals(this.espipeElasticsearchProperties.getFieldsMode())) {
 
