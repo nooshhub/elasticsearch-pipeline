@@ -88,6 +88,11 @@ public class JdbcDao {
 	 * @param indexName index name
 	 */
 	public void init(String indexName) {
+		if (!this.elasticsearchDao.isServerUp(indexName)) {
+			logger.error("Elasticsearch server is not accessible, please Check.");
+			return;
+		}
+
 		jdbcMetrics();
 
 		this.espipeTimerDao.delete(indexName);
