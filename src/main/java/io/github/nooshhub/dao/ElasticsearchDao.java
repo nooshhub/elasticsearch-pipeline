@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
@@ -182,6 +183,46 @@ public class ElasticsearchDao {
 		BulkRequest bulkRequest = BulkRequest.of((b) -> b.operations(bulkOperations));
 
 		return this.esAsyncClient.bulk(bulkRequest);
+	}
+
+	/**
+	 * process single bulk response completable future.
+	 * @param indexName index name
+	 * @param future completable future
+	 */
+	public void processCompletableFuture(String indexName, CompletableFuture<BulkResponse> future) {
+		processCompletableFutures(indexName, List.of(future));
+	}
+
+	/**
+	 * process a list of bulk response completable future.
+	 * @param indexName index name
+	 * @param futures a list of completable future
+	 */
+	public void processCompletableFutures(String indexName, List<CompletableFuture<BulkResponse>> futures) {
+		logger.info("Bulk requests (size: {}) for index {}", futures.size(), indexName);
+		futures.forEach((bulkResFuture) -> {
+			try {
+				BulkResponse bulkRes = bulkResFuture.get();
+				if (bulkRes.errors()) {
+					bulkRes.items().forEach((bulkResponseItem) -> {
+						if (bulkResponseItem.error() != null) {
+							if (("version_conflict_engine_exception").equals(bulkResponseItem.error().type())) {
+								logger.warn(bulkResponseItem.error().reason());
+							}
+							else {
+								logger.error(bulkResponseItem.error().reason());
+							}
+						}
+					});
+				}
+			}
+			catch (InterruptedException | ExecutionException ex) {
+				logger.warn("Interrupted!");
+				// Restore interrupted state...
+				Thread.currentThread().interrupt();
+			}
+		});
 	}
 
 	/**

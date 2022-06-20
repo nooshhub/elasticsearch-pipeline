@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import com.zaxxer.hikari.HikariDataSource;
@@ -130,29 +129,7 @@ public class JdbcDao {
 			flattenMapList.clear();
 		}
 
-		logger.info("Total bulk requests {} for index {}", futures.size(), indexName);
-		futures.forEach((bulkResFuture) -> {
-			try {
-				BulkResponse bulkRes = bulkResFuture.get();
-				if (bulkRes.errors()) {
-					bulkRes.items().forEach((bulkResponseItem) -> {
-						if (bulkResponseItem.error() != null) {
-							if (("version_conflict_engine_exception").equals(bulkResponseItem.error().type())) {
-								logger.warn(bulkResponseItem.error().reason());
-							}
-							else {
-								logger.error(bulkResponseItem.error().reason());
-							}
-						}
-					});
-				}
-			}
-			catch (InterruptedException | ExecutionException ex) {
-				logger.warn("Interrupted!");
-				// Restore interrupted state...
-				Thread.currentThread().interrupt();
-			}
-		});
+		this.elasticsearchDao.processCompletableFutures(indexName, futures);
 
 		this.elasticsearchDao.updateSettingsAfterInit(indexName);
 		sw.stop();
@@ -222,25 +199,8 @@ public class JdbcDao {
 			extendFlattenMap(indexName, flattenMapList);
 			CompletableFuture<BulkResponse> bulkResFuture = this.elasticsearchDao.createDocument(indexName,
 					flattenMapList);
-			BulkResponse bulkRes = null;
-			try {
-				bulkRes = bulkResFuture.get();
-				bulkRes.items().forEach((bulkResponseItem) -> {
-					if (bulkResponseItem.error() != null) {
-						if (("version_conflict_engine_exception").equals(bulkResponseItem.error().type())) {
-							logger.warn(bulkResponseItem.error().reason());
-						}
-						else {
-							logger.error(bulkResponseItem.error().reason());
-						}
-					}
-				});
-			}
-			catch (InterruptedException | ExecutionException ex) {
-				logger.warn("Interrupted!");
-				// Restore interrupted state...
-				Thread.currentThread().interrupt();
-			}
+
+			this.elasticsearchDao.processCompletableFuture(indexName, bulkResFuture);
 
 			flattenMapList.clear();
 		}
