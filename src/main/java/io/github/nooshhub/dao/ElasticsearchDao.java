@@ -46,7 +46,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 /**
- * Elasticsearch Pipe, create, update, delete index or document
+ * Elasticsearch DAO, create, update, delete index or document
  * <p>
  * Document's difference between espipe and logstash 1. why logstash created index has
  * these fields @version @timestamp
@@ -61,9 +61,9 @@ import org.springframework.stereotype.Service;
  * @since 6/3/2022
  */
 @Service
-public class ElasticsearchPipe {
+public class ElasticsearchDao {
 
-	private static final Logger logger = LoggerFactory.getLogger(ElasticsearchPipe.class);
+	private static final Logger logger = LoggerFactory.getLogger(ElasticsearchDao.class);
 
 	@Autowired
 	private ElasticsearchClient esClient;

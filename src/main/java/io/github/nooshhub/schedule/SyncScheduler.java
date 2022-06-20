@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
 import io.github.nooshhub.concurrent.SyncThread;
 import io.github.nooshhub.config.IndexConfigRegistry;
-import io.github.nooshhub.dao.JdbcPipe;
+import io.github.nooshhub.dao.JdbcDao;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -40,7 +40,7 @@ public class SyncScheduler {
 	private IndexConfigRegistry indexConfigRegistry;
 
 	@Autowired
-	private JdbcPipe jdbcPipe;
+	private JdbcDao jdbcDao;
 
 	private final ExecutorService executorService = AbstractThreadPoolFactory.poolForSync();
 
@@ -48,7 +48,7 @@ public class SyncScheduler {
 	public void sync() {
 		// TODO: if init thread is exist, sync should not be performed
 		this.indexConfigRegistry.getIndexConfigs().keySet()
-				.forEach((indexName) -> this.executorService.execute(new SyncThread(this.jdbcPipe, indexName)));
+				.forEach((indexName) -> this.executorService.execute(new SyncThread(this.jdbcDao, indexName)));
 		// TODO: shutdownhook for sync
 	}
 

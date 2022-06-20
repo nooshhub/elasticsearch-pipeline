@@ -24,13 +24,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
- * Espipe Timer is using to log the last refresh time, so we can recover from a crash.
+ * Espipe Timer DAO is using to log the last refresh time, so we can recover from a crash.
  *
  * @author Neal Shan
  * @since 6/3/2022
  */
 @Service
-public class EspipeTimerPipe {
+public class EspipeTimerDao {
 
 	private static final String FIND_LAST_REFRESH_TIME_SQL = "select last_refresh_time from espipe_timer where index_name = ? ";
 

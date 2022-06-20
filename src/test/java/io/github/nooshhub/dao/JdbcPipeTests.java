@@ -36,14 +36,14 @@ public class JdbcPipeTests {
 	private IndexConfigRegistry indexConfigRegistry;
 
 	@Autowired
-	private JdbcPipe jdbcPipe;
+	private JdbcDao jdbcDao;
 
 	@Value("${spring.profiles.active:h2}")
 	private String profile;
 
 	@Test
 	public void init() {
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.init(indexName));
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.init(indexName));
 		// TODO: add assertions to check if index is exist
 		// TODO: add assertions to check if document is exist
 	}
@@ -51,9 +51,9 @@ public class JdbcPipeTests {
 	@Test
 	public void sync() {
 		if (this.profile.equals("h2")) {
-			this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.init(indexName));
+			this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.init(indexName));
 		}
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcPipe.sync(indexName));
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.sync(indexName));
 		// TODO: add assertions to check if index is exist
 		// TODO: add assertions to check if document is exist
 	}

@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
 import io.github.nooshhub.concurrent.InitThread;
 import io.github.nooshhub.config.IndexConfigRegistry;
-import io.github.nooshhub.dao.JdbcPipe;
+import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +44,7 @@ public class IndexService {
 	private IndexConfigRegistry indexConfigRegistry;
 
 	@Autowired
-	private JdbcPipe jdbcPipe;
+	private JdbcDao jdbcDao;
 
 	private final ExecutorService executorService = AbstractThreadPoolFactory.poolForInit();
 
@@ -52,7 +52,7 @@ public class IndexService {
 		// TODO: if sync thread is exist, shut it down first
 
 		this.indexConfigRegistry.getIndexConfigs().keySet()
-				.forEach((indexName) -> this.executorService.execute(new InitThread(this.jdbcPipe, indexName)));
+				.forEach((indexName) -> this.executorService.execute(new InitThread(this.jdbcDao, indexName)));
 
 		this.executorService.shutdown();
 		try {

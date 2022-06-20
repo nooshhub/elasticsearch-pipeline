@@ -46,24 +46,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
 /**
- * Jdbc Pipe, poll data from database by JDBC.
+ * Jdbc DAO, poll data from database by JDBC.
  *
  * @author Neal Shan
  * @since 5/31/2022
  */
 @Service
-public class JdbcPipe {
+public class JdbcDao {
 
-	private static final Logger logger = LoggerFactory.getLogger(JdbcPipe.class);
+	private static final Logger logger = LoggerFactory.getLogger(JdbcDao.class);
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
 	@Autowired
-	private ElasticsearchPipe elasticsearchPipe;
+	private ElasticsearchDao elasticsearchDao;
 
 	@Autowired
-	private EspipeTimerPipe espipeTimerPipe;
+	private EspipeTimerDao espipeTimerDao;
 
 	@Autowired
 	private EspipeElasticsearchProperties espipeElasticsearchProperties;
@@ -91,8 +91,8 @@ public class JdbcPipe {
 	public void init(String indexName) {
 		jdbcMetrics();
 
-		this.espipeTimerPipe.delete(indexName);
-		this.elasticsearchPipe.createIndex(indexName);
+		this.espipeTimerDao.delete(indexName);
+		this.elasticsearchDao.createIndex(indexName);
 
 		StopWatch sw = new StopWatch();
 		sw.start();
@@ -113,7 +113,7 @@ public class JdbcPipe {
 							logger.debug("index data size {}", flattenMapList.size());
 						}
 						extendFlattenMap(indexName, flattenMapList);
-						futures.add(this.elasticsearchPipe.createDocument(indexName, flattenMapList));
+						futures.add(this.elasticsearchDao.createDocument(indexName, flattenMapList));
 						flattenMapList.clear();
 					}
 
@@ -126,7 +126,7 @@ public class JdbcPipe {
 				logger.debug("index data size {}", flattenMapList.size());
 			}
 			extendFlattenMap(indexName, flattenMapList);
-			futures.add(this.elasticsearchPipe.createDocument(indexName, flattenMapList));
+			futures.add(this.elasticsearchDao.createDocument(indexName, flattenMapList));
 			flattenMapList.clear();
 		}
 
@@ -154,12 +154,12 @@ public class JdbcPipe {
 			}
 		});
 
-		this.elasticsearchPipe.updateSettingsAfterInit(indexName);
+		this.elasticsearchDao.updateSettingsAfterInit(indexName);
 		sw.stop();
 
 		// reset after init script finished, or sync script will create document, index
 		// settings will be changed
-		this.espipeTimerPipe.save(indexName, currentRefreshTime);
+		this.espipeTimerDao.save(indexName, currentRefreshTime);
 		logger.info("Init index {} success", indexName);
 		logger.info("Total time: {}s", sw.getTotalTimeSeconds());
 	}
@@ -169,13 +169,13 @@ public class JdbcPipe {
 	 * @param indexName index name
 	 */
 	public void sync(String indexName) {
-		if (!this.elasticsearchPipe.isIndexExist(indexName)) {
+		if (!this.elasticsearchDao.isIndexExist(indexName)) {
 			logger.error("Index {} not exist, please init index manually.", indexName);
 			return;
 		}
 
 		// get the last refresh time from the database, to continue synchronizing
-		LocalDateTime lastRefreshTime = this.espipeTimerPipe.findLastRefreshTime(indexName);
+		LocalDateTime lastRefreshTime = this.espipeTimerDao.findLastRefreshTime(indexName);
 		if (lastRefreshTime == null) {
 			logger.warn("LastRefreshTime is null, please init index {} manually.", indexName);
 			return;
@@ -183,7 +183,7 @@ public class JdbcPipe {
 
 		LocalDateTime currentRefreshTime = LocalDateTime.now(ZoneId.systemDefault());
 
-		this.espipeTimerPipe.save(indexName, currentRefreshTime);
+		this.espipeTimerDao.save(indexName, currentRefreshTime);
 
 		final String syncSql = this.indexConfigRegistry.getIndexConfig(indexName).getSyncSql();
 		List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
@@ -220,7 +220,7 @@ public class JdbcPipe {
 				logger.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
 			}
 			extendFlattenMap(indexName, flattenMapList);
-			CompletableFuture<BulkResponse> bulkResFuture = this.elasticsearchPipe.createDocument(indexName,
+			CompletableFuture<BulkResponse> bulkResFuture = this.elasticsearchDao.createDocument(indexName,
 					flattenMapList);
 			BulkResponse bulkRes = null;
 			try {

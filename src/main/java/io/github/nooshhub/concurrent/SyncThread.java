@@ -16,7 +16,7 @@
 
 package io.github.nooshhub.concurrent;
 
-import io.github.nooshhub.dao.JdbcPipe;
+import io.github.nooshhub.dao.JdbcDao;
 
 /**
  * Init index thread.
@@ -26,18 +26,18 @@ import io.github.nooshhub.dao.JdbcPipe;
  */
 public class SyncThread implements Runnable {
 
-	private final JdbcPipe jdbcPipe;
+	private final JdbcDao jdbcDao;
 
 	private final String indexName;
 
-	public SyncThread(JdbcPipe jdbcPipe, String indexName) {
-		this.jdbcPipe = jdbcPipe;
+	public SyncThread(JdbcDao jdbcDao, String indexName) {
+		this.jdbcDao = jdbcDao;
 		this.indexName = indexName;
 	}
 
 	@Override
 	public void run() {
-		this.jdbcPipe.sync(this.indexName);
+		this.jdbcDao.sync(this.indexName);
 	}
 
 }
