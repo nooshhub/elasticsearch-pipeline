@@ -133,7 +133,7 @@ public class IndexConfigRegistry {
 				sqlProperties.load(sqlPropertiesIns);
 			}
 			catch (IOException ex) {
-				ex.printStackTrace();
+				throw new EspipeException(ex.getMessage());
 			}
 			config.setIdColumns(sqlProperties.getProperty(ID_COLUMNS_NAME));
 			config.setExtensionColumn(sqlProperties.getProperty(EXTENSION_COLUMN_NAME));
@@ -152,7 +152,7 @@ public class IndexConfigRegistry {
 			indexConfigRootDir = new File(resource.toURI());
 		}
 		catch (URISyntaxException ex) {
-			ex.printStackTrace();
+			throw new EspipeException(ex.getMessage());
 		}
 
 		if (indexConfigRootDir == null) {

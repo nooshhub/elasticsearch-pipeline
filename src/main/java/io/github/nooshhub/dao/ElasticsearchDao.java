@@ -97,8 +97,7 @@ public class ElasticsearchDao {
 			}
 		}
 		catch (IOException ex) {
-			ex.printStackTrace();
-			return;
+			throw new EspipeException(ex.getMessage());
 		}
 
 		try (InputStream indexSettingIns = IOUtils.getInputStream(indexConfig.getIndexSettingsPath())) {
@@ -107,8 +106,7 @@ public class ElasticsearchDao {
 			logger.info("Index {} is created", indexName);
 		}
 		catch (IOException ex) {
-			ex.printStackTrace();
-			return;
+			throw new EspipeException(ex.getMessage());
 		}
 
 		try (InputStream indexMappingIns = IOUtils.getInputStream(indexConfig.getIndexMappingPath())) {
@@ -118,7 +116,7 @@ public class ElasticsearchDao {
 			logger.info("Index {} mapping is updated", indexName);
 		}
 		catch (IOException ex) {
-			ex.printStackTrace();
+			throw new EspipeException(ex.getMessage());
 		}
 	}
 
@@ -134,7 +132,21 @@ public class ElasticsearchDao {
 					(b) -> b.index(indexName).settings((settings) -> settings.refreshInterval((t) -> t.time("1s")))));
 		}
 		catch (IOException ex) {
-			ex.printStackTrace();
+			throw new EspipeException(ex.getMessage());
+		}
+	}
+
+	/**
+	 * check if server is up.
+	 * @param indexName index name
+	 * @return true if server is up, otherwise false
+	 */
+	public boolean isServerUp(String indexName) {
+		try {
+			return this.esClient.ping().value();
+		}
+		catch (IOException ex) {
+			return false;
 		}
 	}
 
@@ -148,7 +160,6 @@ public class ElasticsearchDao {
 			return this.esClient.indices().exists((builder) -> builder.index(indexName)).value();
 		}
 		catch (IOException ex) {
-			ex.printStackTrace();
 			return false;
 		}
 	}
