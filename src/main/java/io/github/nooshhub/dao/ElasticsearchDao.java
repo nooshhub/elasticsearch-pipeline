@@ -138,10 +138,9 @@ public class ElasticsearchDao {
 
 	/**
 	 * check if server is up.
-	 * @param indexName index name
 	 * @return true if server is up, otherwise false
 	 */
-	public boolean isServerUp(String indexName) {
+	public boolean isServerUp() {
 		try {
 			return this.esClient.ping().value();
 		}
