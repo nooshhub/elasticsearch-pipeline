@@ -27,23 +27,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
- * Sample worker is used to mimic creating data for testing ONLY create data for h2
- * database.
+ * A testing fixture for preparing data.
  *
  * @author Neal Shan
  * @since 6/3/2022
  */
 @Service
-@Profile("h2")
-public class EspipeSampleWorker {
+public class TestDataFixture {
 
-	private static final Logger logger = LoggerFactory.getLogger(EspipeSampleWorker.class);
+	private static final Logger logger = LoggerFactory.getLogger(TestDataFixture.class);
 
 	private static final String INSERT_PROJECT = "insert into nh_project values (?, ?, ?, ?, ?)";
 
@@ -55,25 +51,16 @@ public class EspipeSampleWorker {
 	// preserve id form 1 to 9 to manually create data
 	private final AtomicInteger atomicInteger = new AtomicInteger(10);
 
-	@Scheduled(fixedRate = 5000)
-	public void createProjects() {
+	public void createProjects(int size) {
 		List<Object[]> data = new ArrayList<>();
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < size; i++) {
 			Object[] args = new Object[5];
 			args[0] = this.atomicInteger.getAndIncrement();
 			args[1] = "project " + args[0];
 			args[2] = "1,2,3";
 			args[3] = Timestamp.valueOf(LocalDateTime.now(ZoneId.systemDefault()));
 			args[4] = null;
-			try {
-				Thread.sleep(200);
-			}
-			catch (InterruptedException ex) {
-				logger.warn("Interrupted!");
-				// Restore interrupted state...
-				Thread.currentThread().interrupt();
-			}
 			data.add(args);
 		}
 
@@ -85,25 +72,16 @@ public class EspipeSampleWorker {
 		}
 	}
 
-	@Scheduled(fixedRate = 5000)
-	public void createEstimates() {
+	public void createEstimates(int size) {
 		List<Object[]> data = new ArrayList<>();
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < size; i++) {
 			Object[] args = new Object[5];
 			args[0] = this.atomicInteger.getAndIncrement();
 			args[1] = "estimate " + args[0];
 			args[2] = "1,2,3";
 			args[3] = Timestamp.valueOf(LocalDateTime.now(ZoneId.systemDefault()));
 			args[4] = null;
-			try {
-				Thread.sleep(200);
-			}
-			catch (InterruptedException ex) {
-				logger.warn("Interrupted!");
-				// Restore interrupted state...
-				Thread.currentThread().interrupt();
-			}
 			data.add(args);
 		}
 

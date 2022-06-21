@@ -212,6 +212,15 @@ public class JdbcDao {
 	}
 
 	/**
+	 * get total count of table.
+	 * @param tableName table name
+	 * @return total count
+	 */
+	public long getTotalCount(String tableName) {
+		return this.jdbcTemplate.queryForObject("select count(*) from " + tableName, Long.class);
+	}
+
+	/**
 	 * put stand fields in flattenMap.
 	 * @param rs result set
 	 * @return flatten map

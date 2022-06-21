@@ -49,8 +49,6 @@ public class IndexService {
 	private final ExecutorService executorService = AbstractThreadPoolFactory.poolForInit();
 
 	public void init() {
-		// TODO: if sync thread is exist, shut it down first
-
 		this.indexConfigRegistry.getIndexConfigs().keySet()
 				.forEach((indexName) -> this.executorService.execute(new InitThread(this.jdbcDao, indexName)));
 

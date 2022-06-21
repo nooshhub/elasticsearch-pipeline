@@ -17,20 +17,23 @@
 package io.github.nooshhub.dao;
 
 import io.github.nooshhub.config.IndexConfigRegistry;
+import io.github.nooshhub.support.TestDataFixture;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
- * Unit tests for {@link JdbcPipeTests}
+ * Unit tests for {@link JdbcDaoTests}
  *
  * @author Neal Shan
  * @since 5/31/2022
  */
 @SpringBootTest(properties = "spring.profiles.active:h2")
-public class JdbcPipeTests {
+public class JdbcDaoTests {
 
 	@Autowired
 	private IndexConfigRegistry indexConfigRegistry;
@@ -38,24 +41,43 @@ public class JdbcPipeTests {
 	@Autowired
 	private JdbcDao jdbcDao;
 
+	@Autowired
+	private TestDataFixture testDataFixture;
+
+	@Autowired
+	protected ElasticsearchDao elasticsearchDao;
+
 	@Value("${spring.profiles.active:h2}")
 	private String profile;
 
 	@Test
 	public void init() {
 		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.init(indexName));
-		// TODO: add assertions to check if index is exist
-		// TODO: add assertions to check if document is exist
+
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) ->
+			assertThat(this.elasticsearchDao.isIndexExist(indexName)).isTrue()
+		);
+
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) ->
+			assertThat(this.elasticsearchDao.indexTotalCount(indexName)).isEqualTo(this.jdbcDao.getTotalCount(indexName))
+		);
 	}
 
 	@Test
 	public void sync() {
 		if (this.profile.equals("h2")) {
 			this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.init(indexName));
+
+			this.testDataFixture.createProjects(10);
+			this.testDataFixture.createEstimates(10);
 		}
+
 		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.sync(indexName));
-		// TODO: add assertions to check if index is exist
-		// TODO: add assertions to check if document is exist
+
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
+			this.elasticsearchDao.refresh(indexName);
+			assertThat(this.elasticsearchDao.indexTotalCount(indexName)).isEqualTo(this.jdbcDao.getTotalCount(indexName));
+		});
 	}
 
 }

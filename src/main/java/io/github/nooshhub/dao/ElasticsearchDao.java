@@ -164,6 +164,33 @@ public class ElasticsearchDao {
 	}
 
 	/**
+	 * refresh index.
+	 * @param indexName index name
+	 */
+	public void refresh(String indexName) {
+		try {
+			this.esClient.indices().refresh((builder) -> builder.index(indexName));
+		}
+		catch (IOException ex) {
+			return;
+		}
+	}
+
+	/**
+	 * get index total count.
+	 * @param indexName index name
+	 * @return count, otherwise return long min_value.
+	 */
+	public long indexTotalCount(String indexName) {
+		try {
+			return this.esClient.count((builder) -> builder.index(indexName)).count();
+		}
+		catch (IOException ex) {
+			return Long.MIN_VALUE;
+		}
+	}
+
+	/**
 	 * create one document.
 	 * @param indexName index name
 	 * @param flattenMap flatten Map

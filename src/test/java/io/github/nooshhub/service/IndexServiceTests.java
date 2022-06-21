@@ -16,10 +16,15 @@
 
 package io.github.nooshhub.service;
 
+import io.github.nooshhub.config.IndexConfigRegistry;
+import io.github.nooshhub.dao.ElasticsearchDao;
+import io.github.nooshhub.dao.JdbcDao;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link IndexServiceTests}
@@ -33,11 +38,27 @@ public class IndexServiceTests {
 	@Autowired
 	private IndexService indexService;
 
+	@Autowired
+	private IndexConfigRegistry indexConfigRegistry;
+
+	@Autowired
+	private ElasticsearchDao elasticsearchDao;
+
+	@Autowired
+	private JdbcDao jdbcDao;
+
 	@Test
 	public void init() {
 		this.indexService.init();
-		// TODO: add assertions to check if index is exist
-		// TODO: add assertions to check if document is exist
+
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) ->
+			assertThat(this.elasticsearchDao.isIndexExist(indexName)).isTrue()
+		);
+
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
+			this.elasticsearchDao.refresh(indexName);
+			assertThat(this.elasticsearchDao.indexTotalCount(indexName)).isEqualTo(this.jdbcDao.getTotalCount(indexName));
+		});
 	}
 
 }
