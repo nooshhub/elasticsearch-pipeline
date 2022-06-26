@@ -104,7 +104,7 @@ public class IndexConfigRegistry {
 
 	private void scanIndexConfigs() {
 		String userDir = System.getProperty("user.dir");
-		String homeDir = new File((userDir)).getParent();
+		String homeDir = new File(userDir).getParent();
 		String rootDir = homeDir + "/" + ROOT_DIR + this.profile + "/" + INDEX_CONFIG_LOCATION;
 
 		logger.info("Scanning Index Config under {}", rootDir);
