@@ -47,11 +47,6 @@ public class IndexConfigRegistry {
 	private static final Logger logger = LoggerFactory.getLogger(IndexConfigRegistry.class);
 
 	/**
-	 * home dir.
-	 */
-	private static final String HOME_DIR = "I:/nooshhub/elasticsearch-pipeline/";
-
-	/**
 	 * root directory under resources.
 	 */
 	private static final String ROOT_DIR = "espipe/";
@@ -108,8 +103,9 @@ public class IndexConfigRegistry {
 	}
 
 	private void scanIndexConfigs() {
-		// TODO: get home_dir, we should allow user to put config files anywhere they want.
-		String rootDir = HOME_DIR + ROOT_DIR + this.profile + "/" + INDEX_CONFIG_LOCATION;
+		String userDir = System.getProperty("user.dir");
+		String homeDir = new File((userDir)).getParent();
+		String rootDir = homeDir + "/" + ROOT_DIR + this.profile + "/" + INDEX_CONFIG_LOCATION;
 
 		logger.info("Scanning Index Config under {}", rootDir);
 
