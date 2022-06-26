@@ -19,8 +19,6 @@ package io.github.nooshhub.config;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,17 +46,20 @@ public class IndexConfigRegistry {
 
 	private static final Logger logger = LoggerFactory.getLogger(IndexConfigRegistry.class);
 
-	public static final String HOME_DIR = "I:/nooshhub/elasticsearch-pipeline/";
+	/**
+	 * home dir.
+	 */
+	private static final String HOME_DIR = "I:/nooshhub/elasticsearch-pipeline/";
 
 	/**
 	 * root directory under resources.
 	 */
-	public static final String ROOT_DIR = "espipe/";
+	private static final String ROOT_DIR = "espipe/";
 
 	/**
 	 * directory to put create index required configuration and sql.
 	 */
-	public static final String INDEX_CONFIG_LOCATION = "es/";
+	private static final String INDEX_CONFIG_LOCATION = "es/";
 
 	private static final String INDEX_SETTINGS_NAME = "/settings.json";
 
@@ -107,7 +108,7 @@ public class IndexConfigRegistry {
 	}
 
 	private void scanIndexConfigs() {
-		// TODO: get home_dir
+		// TODO: get home_dir, we should allow user to put config files anywhere they want.
 		String rootDir = HOME_DIR + ROOT_DIR + this.profile + "/" + INDEX_CONFIG_LOCATION;
 
 		logger.info("Scanning Index Config under {}", rootDir);

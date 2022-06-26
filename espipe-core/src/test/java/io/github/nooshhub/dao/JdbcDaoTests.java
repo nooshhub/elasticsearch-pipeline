@@ -58,9 +58,10 @@ public class JdbcDaoTests {
 			assertThat(this.elasticsearchDao.isIndexExist(indexName)).isTrue()
 		);
 
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) ->
-			assertThat(this.elasticsearchDao.indexTotalCount(indexName)).isEqualTo(this.jdbcDao.getTotalCount(indexName))
-		);
+		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
+			this.elasticsearchDao.refresh(indexName);
+			assertThat(this.elasticsearchDao.indexTotalCount(indexName)).isEqualTo(this.jdbcDao.getTotalCount(indexName));
+		});
 	}
 
 	@Test

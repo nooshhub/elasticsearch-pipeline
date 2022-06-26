@@ -24,8 +24,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
-import io.github.nooshhub.exception.EspipeException;
-
 /**
  * IO Utils.
  * <p>
@@ -47,16 +45,12 @@ public final class IOUtils {
 	 * @return input stream
 	 */
 	public static InputStream getInputStream(String filePath) {
-		if (filePath == null) {
-			throw new EspipeException("File is not found by " + filePath);
-		}
-
 		InputStream ins = null;
 		try {
 			ins = new FileInputStream(filePath);
 		}
-		catch (FileNotFoundException e) {
-			throw new EspipeException("File is not found by " + filePath);
+		catch (FileNotFoundException ex) {
+			ex.printStackTrace();
 		}
 
 		return ins;
