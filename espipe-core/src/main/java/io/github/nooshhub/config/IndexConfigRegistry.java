@@ -142,12 +142,7 @@ public class IndexConfigRegistry {
 	}
 
 	private List<String> findIndexNames(String rootDir) {
-		File indexConfigRootDir = null;
-		indexConfigRootDir = new File(rootDir);
-
-		if (indexConfigRootDir == null) {
-			throw new EspipeException("Directory is not found by " + rootDir);
-		}
+		File indexConfigRootDir = new File(rootDir);
 
 		List<String> indexNames = new ArrayList<>();
 		for (File indexConfigDir : indexConfigRootDir.listFiles()) {
