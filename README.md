@@ -23,3 +23,7 @@ mvn clean deploy -P release
 
 - [design](/doc/design.md)
 - [tbd and release notes](/doc/releases.md)
+
+### Sponsor
+
+Dora, Kevin, Lanceadd, MrsMeow

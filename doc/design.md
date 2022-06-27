@@ -2,7 +2,7 @@
 
 ![Architecture](images/architecture.png)
 
-![N TO 1](https://mmbiz.qpic.cn/mmbiz_png/RGINbiaOhjW9feEzaNvCSyUEUEuNwArQECPapibVmdDhlYeLdDpyVDia1FOviau2JQibH8ZWVArJAm2hOVBJD4jV69g/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1)
+![N TO 1](images/n21.png)
 
 - case 1: aggregate fields to one field was failed, since sql field has length limit
 ```
@@ -28,4 +28,4 @@ we will log the error
 - case 4: speed
 currently 100k could be synced in 15s, I believe we could make this much faster since load 100k data from a database only takes 4s.
 
-
+ESPIPE is query-based ETL, we may support log-based ETL in the future.
