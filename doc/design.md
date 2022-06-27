@@ -28,4 +28,4 @@ we will log the error
 - case 4: speed
 currently 100k could be synced in 15s, I believe we could make this much faster since load 100k data from a database only takes 4s.
 
-
+ESPIPE is query-based ETL, we may support log-based ETL in the future.
