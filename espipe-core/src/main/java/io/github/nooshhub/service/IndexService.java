@@ -63,4 +63,18 @@ public class IndexService {
 		}
 	}
 
+	public void init(String indexName) {
+		this.executorService.execute(new InitThread(this.jdbcDao, indexName));
+
+		this.executorService.shutdown();
+		try {
+			this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		}
+		catch (InterruptedException ex) {
+			logger.warn("Interrupted!");
+			// Restore interrupted state...
+			Thread.currentThread().interrupt();
+		}
+	}
+
 }
