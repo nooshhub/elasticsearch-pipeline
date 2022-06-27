@@ -48,7 +48,7 @@ public class PleaseController {
 
 	@GetMapping("please/stop/init/all")
 	public void stopInitAll() {
-		// ? how to stop https://www.baeldung.com/java-thread-stop
+		// TODO: how to stop https://www.baeldung.com/java-thread-stop
 	}
 
 	@GetMapping("please/stop/init/{indexName}")
