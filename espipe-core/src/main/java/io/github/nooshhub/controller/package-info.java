@@ -14,32 +14,9 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub;
-
-import java.util.TimeZone;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
 /**
- * Main Entry.
- *
+ * Controllers for web api.
  * @author Neal Shan
- * @since 0.0.1
+ * @since 6/27/2022
  */
-@EnableScheduling
-@SpringBootApplication
-public class App {
-
-    /**
-     * main method.
-     * @param args input arguments
-     */
-    public static void main(String[] args) {
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-
-        SpringApplication.run(App.class, args);
-    }
-
-}
+package io.github.nooshhub.controller;

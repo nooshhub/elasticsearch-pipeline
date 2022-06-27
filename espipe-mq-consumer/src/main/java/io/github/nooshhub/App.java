@@ -32,14 +32,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 public class App {
 
-	/**
-	 * main method.
-	 * @param args input arguments
-	 */
-	public static void main(String[] args) {
-		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    /**
+     * main method.
+     * @param args input arguments
+     */
+    public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
-		SpringApplication.run(App.class, args);
-	}
+        SpringApplication.run(App.class, args);
+    }
 
 }

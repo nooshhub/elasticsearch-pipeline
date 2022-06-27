@@ -38,43 +38,43 @@ import org.springframework.stereotype.Service;
 @Service
 public class IndexService {
 
-	private static final Logger logger = LoggerFactory.getLogger(IndexService.class);
+    private static final Logger logger = LoggerFactory.getLogger(IndexService.class);
 
-	@Autowired
-	private IndexConfigRegistry indexConfigRegistry;
+    @Autowired
+    private IndexConfigRegistry indexConfigRegistry;
 
-	@Autowired
-	private JdbcDao jdbcDao;
+    @Autowired
+    private JdbcDao jdbcDao;
 
-	private final ExecutorService executorService = AbstractThreadPoolFactory.poolForInit();
+    private final ExecutorService executorService = AbstractThreadPoolFactory.poolForInit();
 
-	public void init() {
-		this.indexConfigRegistry.getIndexConfigs().keySet()
-				.forEach((indexName) -> this.executorService.execute(new InitThread(this.jdbcDao, indexName)));
+    public void init() {
+        this.indexConfigRegistry.getIndexConfigs().keySet()
+                .forEach((indexName) -> this.executorService.execute(new InitThread(this.jdbcDao, indexName)));
 
-		this.executorService.shutdown();
-		try {
-			this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		}
-		catch (InterruptedException ex) {
-			logger.warn("Interrupted!");
-			// Restore interrupted state...
-			Thread.currentThread().interrupt();
-		}
-	}
+        this.executorService.shutdown();
+        try {
+            this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        }
+        catch (InterruptedException ex) {
+            logger.warn("Interrupted!");
+            // Restore interrupted state...
+            Thread.currentThread().interrupt();
+        }
+    }
 
-	public void init(String indexName) {
-		this.executorService.execute(new InitThread(this.jdbcDao, indexName));
+    public void init(String indexName) {
+        this.executorService.execute(new InitThread(this.jdbcDao, indexName));
 
-		this.executorService.shutdown();
-		try {
-			this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-		}
-		catch (InterruptedException ex) {
-			logger.warn("Interrupted!");
-			// Restore interrupted state...
-			Thread.currentThread().interrupt();
-		}
-	}
+        this.executorService.shutdown();
+        try {
+            this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        }
+        catch (InterruptedException ex) {
+            logger.warn("Interrupted!");
+            // Restore interrupted state...
+            Thread.currentThread().interrupt();
+        }
+    }
 
 }

@@ -26,18 +26,18 @@ import io.github.nooshhub.dao.JdbcDao;
  */
 public class SyncThread implements Runnable {
 
-	private final JdbcDao jdbcDao;
+    private final JdbcDao jdbcDao;
 
-	private final String indexName;
+    private final String indexName;
 
-	public SyncThread(JdbcDao jdbcDao, String indexName) {
-		this.jdbcDao = jdbcDao;
-		this.indexName = indexName;
-	}
+    public SyncThread(JdbcDao jdbcDao, String indexName) {
+        this.jdbcDao = jdbcDao;
+        this.indexName = indexName;
+    }
 
-	@Override
-	public void run() {
-		this.jdbcDao.sync(this.indexName);
-	}
+    @Override
+    public void run() {
+        this.jdbcDao.sync(this.indexName);
+    }
 
 }

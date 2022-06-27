@@ -27,23 +27,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CustomThreadFactory implements ThreadFactory {
 
-	private final ThreadGroup group;
+    private final ThreadGroup group;
 
-	private final AtomicInteger threadNumber = new AtomicInteger(1);
+    private final AtomicInteger threadNumber = new AtomicInteger(1);
 
-	private final String namePrefix;
+    private final String namePrefix;
 
-	public CustomThreadFactory(String prefix) {
-		this.group = Thread.currentThread().getThreadGroup();
-		this.namePrefix = prefix + "-t-";
-	}
+    public CustomThreadFactory(String prefix) {
+        this.group = Thread.currentThread().getThreadGroup();
+        this.namePrefix = prefix + "-t-";
+    }
 
-	public Thread newThread(Runnable r) {
-		Thread t = new Thread(this.group, r, this.namePrefix + this.threadNumber.getAndIncrement(), 0);
-		if (t.isDaemon()) {
-			t.setDaemon(false);
-		}
-		return t;
-	}
+    public Thread newThread(Runnable r) {
+        Thread t = new Thread(this.group, r, this.namePrefix + this.threadNumber.getAndIncrement(), 0);
+        if (t.isDaemon()) {
+            t.setDaemon(false);
+        }
+        return t;
+    }
 
 }

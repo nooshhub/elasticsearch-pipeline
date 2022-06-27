@@ -24,67 +24,65 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Follow the style of please command.
- * Ex: please init all.
- * 
+ * Follow the style of please command. Ex: please init all.
+ *
  * @author Neal Shan
  * @since 6/26/2022
  */
 @RestController
 public class PleaseController {
 
-	@Autowired
-	private IndexService indexService;
+    @Autowired
+    private IndexService indexService;
 
-	@GetMapping("please/start/init/all")
-	public void startInitAll() {
-		indexService.init();
-	}
+    @GetMapping("please/start/init/all")
+    public void startInitAll() {
+        this.indexService.init();
+    }
 
-	@GetMapping("please/start/init/{indexName}")
-	public void startInitOne(@PathVariable("indexName") String indexName) {
-		indexService.init(indexName);
-	}
+    @GetMapping("please/start/init/{indexName}")
+    public void startInitOne(@PathVariable("indexName") String indexName) {
+        this.indexService.init(indexName);
+    }
 
-	@GetMapping("please/stop/init/all")
-	public void stopInitAll() {
-		// TODO: how to stop https://www.baeldung.com/java-thread-stop
-	}
+    @GetMapping("please/stop/init/all")
+    public void stopInitAll() {
+        // TODO: how to stop https://www.baeldung.com/java-thread-stop
+    }
 
-	@GetMapping("please/stop/init/{indexName}")
-	public void stopInitOne() {
+    @GetMapping("please/stop/init/{indexName}")
+    public void stopInitOne() {
 
-	}
+    }
 
-	@GetMapping("please/start/sync/all")
-	public void startSyncAll() {
+    @GetMapping("please/start/sync/all")
+    public void startSyncAll() {
 
-	}
+    }
 
-	@GetMapping("please/start/sync/{indexName}")
-	public void startSyncOne() {
+    @GetMapping("please/start/sync/{indexName}")
+    public void startSyncOne() {
 
-	}
+    }
 
-	@GetMapping("please/stop/sync/all")
-	public void stopSyncAll() {
+    @GetMapping("please/stop/sync/all")
+    public void stopSyncAll() {
 
-	}
+    }
 
-	@GetMapping("please/stop/sync/{indexName}")
-	public void stopSyncOne() {
+    @GetMapping("please/stop/sync/{indexName}")
+    public void stopSyncOne() {
 
-	}
+    }
 
-	@GetMapping("please/fix/{indexName}/{id}")
-	public void fixOne() {
+    @GetMapping("please/fix/{indexName}/{id}")
+    public void fixOne() {
 
-	}
+    }
 
-	@GetMapping("please/show/metrics")
-	public void showMetrics() {
+    @GetMapping("please/show/metrics")
+    public void showMetrics() {
 
-	}
-
+    }
 
 }

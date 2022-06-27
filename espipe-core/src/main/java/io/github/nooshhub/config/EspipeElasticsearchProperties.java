@@ -29,58 +29,58 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "espipe.elasticsearch")
 public class EspipeElasticsearchProperties {
 
-	private String host;
+    private String host;
 
-	private int port;
+    private int port;
 
-	private String protocol;
+    private String protocol;
 
-	private String fieldsMode;
+    private String fieldsMode;
 
-	/**
-	 * bulkSize.
-	 * https://www.elastic.co/blog/benchmarking-and-sizing-your-elasticsearch-cluster-for-logs-and-metrics
-	 */
-	private int bulkSize;
+    /**
+     * bulkSize.
+     * https://www.elastic.co/blog/benchmarking-and-sizing-your-elasticsearch-cluster-for-logs-and-metrics
+     */
+    private int bulkSize;
 
-	public int getBulkSize() {
-		return this.bulkSize;
-	}
+    public int getBulkSize() {
+        return this.bulkSize;
+    }
 
-	public void setBulkSize(int bulkSize) {
-		this.bulkSize = bulkSize;
-	}
+    public void setBulkSize(int bulkSize) {
+        this.bulkSize = bulkSize;
+    }
 
-	public String getHost() {
-		return this.host;
-	}
+    public String getHost() {
+        return this.host;
+    }
 
-	public void setHost(String host) {
-		this.host = host;
-	}
+    public void setHost(String host) {
+        this.host = host;
+    }
 
-	public int getPort() {
-		return this.port;
-	}
+    public int getPort() {
+        return this.port;
+    }
 
-	public void setPort(int port) {
-		this.port = port;
-	}
+    public void setPort(int port) {
+        this.port = port;
+    }
 
-	public String getProtocol() {
-		return this.protocol;
-	}
+    public String getProtocol() {
+        return this.protocol;
+    }
 
-	public void setProtocol(String protocol) {
-		this.protocol = protocol;
-	}
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
 
-	public String getFieldsMode() {
-		return this.fieldsMode;
-	}
+    public String getFieldsMode() {
+        return this.fieldsMode;
+    }
 
-	public void setFieldsMode(String fieldsMode) {
-		this.fieldsMode = fieldsMode;
-	}
+    public void setFieldsMode(String fieldsMode) {
+        this.fieldsMode = fieldsMode;
+    }
 
 }

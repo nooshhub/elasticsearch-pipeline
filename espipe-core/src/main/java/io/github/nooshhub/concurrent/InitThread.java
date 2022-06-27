@@ -26,18 +26,18 @@ import io.github.nooshhub.dao.JdbcDao;
  */
 public class InitThread implements Runnable {
 
-	private final JdbcDao jdbcDao;
+    private final JdbcDao jdbcDao;
 
-	private final String indexName;
+    private final String indexName;
 
-	public InitThread(JdbcDao jdbcDao, String indexName) {
-		this.jdbcDao = jdbcDao;
-		this.indexName = indexName;
-	}
+    public InitThread(JdbcDao jdbcDao, String indexName) {
+        this.jdbcDao = jdbcDao;
+        this.indexName = indexName;
+    }
 
-	@Override
-	public void run() {
-		this.jdbcDao.init(this.indexName);
-	}
+    @Override
+    public void run() {
+        this.jdbcDao.init(this.indexName);
+    }
 
 }

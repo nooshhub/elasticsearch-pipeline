@@ -38,35 +38,35 @@ import io.github.nooshhub.exception.EspipeException;
  */
 public final class IOUtils {
 
-	private IOUtils() {
-	}
+    private IOUtils() {
+    }
 
-	/**
-	 * get input stream by file path.
-	 * @param filePath file path
-	 * @return input stream
-	 */
-	public static InputStream getInputStream(String filePath) {
-		InputStream ins = null;
-		try {
-			ins = new FileInputStream(filePath);
-		}
-		catch (FileNotFoundException ex) {
-			throw new EspipeException("File is not found by " + filePath);
-		}
+    /**
+     * get input stream by file path.
+     * @param filePath file path
+     * @return input stream
+     */
+    public static InputStream getInputStream(String filePath) {
+        InputStream ins = null;
+        try {
+            ins = new FileInputStream(filePath);
+        }
+        catch (FileNotFoundException ex) {
+            throw new EspipeException("File is not found by " + filePath);
+        }
 
-		return ins;
-	}
+        return ins;
+    }
 
-	/**
-	 * get string by file path.
-	 * @param filePath file path
-	 * @return file content as string
-	 */
-	public static String getContent(String filePath) {
-		InputStream ins = getInputStream(filePath);
-		return new BufferedReader(new InputStreamReader(ins, StandardCharsets.UTF_8)).lines()
-				.collect(Collectors.joining("\n"));
-	}
+    /**
+     * get string by file path.
+     * @param filePath file path
+     * @return file content as string
+     */
+    public static String getContent(String filePath) {
+        InputStream ins = getInputStream(filePath);
+        return new BufferedReader(new InputStreamReader(ins, StandardCharsets.UTF_8)).lines()
+                .collect(Collectors.joining("\n"));
+    }
 
 }

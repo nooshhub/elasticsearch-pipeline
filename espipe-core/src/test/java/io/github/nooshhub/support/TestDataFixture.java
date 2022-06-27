@@ -39,58 +39,58 @@ import org.springframework.stereotype.Service;
 @Service
 public class TestDataFixture {
 
-	private static final Logger logger = LoggerFactory.getLogger(TestDataFixture.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestDataFixture.class);
 
-	private static final String INSERT_PROJECT = "insert into nh_project values (?, ?, ?, ?, ?)";
+    private static final String INSERT_PROJECT = "insert into nh_project values (?, ?, ?, ?, ?)";
 
-	private static final String INSERT_ESTIAMTE = "insert into nh_estimate values (?, ?, ?, ?, ?)";
+    private static final String INSERT_ESTIAMTE = "insert into nh_estimate values (?, ?, ?, ?, ?)";
 
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-	// preserve id form 1 to 9 to manually create data
-	private final AtomicInteger atomicInteger = new AtomicInteger(10);
+    // preserve id form 1 to 9 to manually create data
+    private final AtomicInteger atomicInteger = new AtomicInteger(10);
 
-	public void createProjects(int size) {
-		List<Object[]> data = new ArrayList<>();
+    public void createProjects(int size) {
+        List<Object[]> data = new ArrayList<>();
 
-		for (int i = 0; i < size; i++) {
-			Object[] args = new Object[5];
-			args[0] = this.atomicInteger.getAndIncrement();
-			args[1] = "project " + args[0];
-			args[2] = "1,2,3";
-			args[3] = Timestamp.valueOf(LocalDateTime.now(ZoneId.systemDefault()));
-			args[4] = null;
-			data.add(args);
-		}
+        for (int i = 0; i < size; i++) {
+            Object[] args = new Object[5];
+            args[0] = this.atomicInteger.getAndIncrement();
+            args[1] = "project " + args[0];
+            args[2] = "1,2,3";
+            args[3] = Timestamp.valueOf(LocalDateTime.now(ZoneId.systemDefault()));
+            args[4] = null;
+            data.add(args);
+        }
 
-		this.jdbcTemplate.batchUpdate(INSERT_PROJECT, data);
+        this.jdbcTemplate.batchUpdate(INSERT_PROJECT, data);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("data from {} is prepared for {} from {} to {}", data.get(0)[0], "nh_project", data.get(0)[3],
-					data.get(9)[3]);
-		}
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("data from {} is prepared for {} from {} to {}", data.get(0)[0], "nh_project", data.get(0)[3],
+                    data.get(9)[3]);
+        }
+    }
 
-	public void createEstimates(int size) {
-		List<Object[]> data = new ArrayList<>();
+    public void createEstimates(int size) {
+        List<Object[]> data = new ArrayList<>();
 
-		for (int i = 0; i < size; i++) {
-			Object[] args = new Object[5];
-			args[0] = this.atomicInteger.getAndIncrement();
-			args[1] = "estimate " + args[0];
-			args[2] = "1,2,3";
-			args[3] = Timestamp.valueOf(LocalDateTime.now(ZoneId.systemDefault()));
-			args[4] = null;
-			data.add(args);
-		}
+        for (int i = 0; i < size; i++) {
+            Object[] args = new Object[5];
+            args[0] = this.atomicInteger.getAndIncrement();
+            args[1] = "estimate " + args[0];
+            args[2] = "1,2,3";
+            args[3] = Timestamp.valueOf(LocalDateTime.now(ZoneId.systemDefault()));
+            args[4] = null;
+            data.add(args);
+        }
 
-		this.jdbcTemplate.batchUpdate(INSERT_ESTIAMTE, data);
+        this.jdbcTemplate.batchUpdate(INSERT_ESTIAMTE, data);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("data from {} is prepared for {} from {} to {}", data.get(0)[0], "nh_estimate", data.get(0)[3],
-					data.get(9)[3]);
-		}
-	}
+        if (logger.isDebugEnabled()) {
+            logger.debug("data from {} is prepared for {} from {} to {}", data.get(0)[0], "nh_estimate", data.get(0)[3],
+                    data.get(9)[3]);
+        }
+    }
 
 }

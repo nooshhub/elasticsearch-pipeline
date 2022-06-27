@@ -35,50 +35,51 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(properties = "spring.profiles.active:h2")
 public class JdbcDaoTests {
 
-	@Autowired
-	private IndexConfigRegistry indexConfigRegistry;
+    @Autowired
+    private IndexConfigRegistry indexConfigRegistry;
 
-	@Autowired
-	private JdbcDao jdbcDao;
+    @Autowired
+    private JdbcDao jdbcDao;
 
-	@Autowired
-	private TestDataFixture testDataFixture;
+    @Autowired
+    private TestDataFixture testDataFixture;
 
-	@Autowired
-	protected ElasticsearchDao elasticsearchDao;
+    @Autowired
+    protected ElasticsearchDao elasticsearchDao;
 
-	@Value("${spring.profiles.active:h2}")
-	private String profile;
+    @Value("${spring.profiles.active:h2}")
+    private String profile;
 
-	@Test
-	public void init() {
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.init(indexName));
+    @Test
+    public void init() {
+        this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.init(indexName));
 
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) ->
-			assertThat(this.elasticsearchDao.isIndexExist(indexName)).isTrue()
-		);
+        this.indexConfigRegistry.getIndexConfigs().keySet()
+                .forEach((indexName) -> assertThat(this.elasticsearchDao.isIndexExist(indexName)).isTrue());
 
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
-			this.elasticsearchDao.refresh(indexName);
-			assertThat(this.elasticsearchDao.indexTotalCount(indexName)).isEqualTo(this.jdbcDao.getTotalCount(indexName));
-		});
-	}
+        this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
+            this.elasticsearchDao.refresh(indexName);
+            assertThat(this.elasticsearchDao.indexTotalCount(indexName))
+                    .isEqualTo(this.jdbcDao.getTotalCount(indexName));
+        });
+    }
 
-	@Test
-	public void sync() {
-		if (this.profile.equals("h2")) {
-			this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.init(indexName));
+    @Test
+    public void sync() {
+        if (this.profile.equals("h2")) {
+            this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.init(indexName));
 
-			this.testDataFixture.createProjects(10);
-			this.testDataFixture.createEstimates(10);
-		}
+            this.testDataFixture.createProjects(10);
+            this.testDataFixture.createEstimates(10);
+        }
 
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.sync(indexName));
+        this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> this.jdbcDao.sync(indexName));
 
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
-			this.elasticsearchDao.refresh(indexName);
-			assertThat(this.elasticsearchDao.indexTotalCount(indexName)).isEqualTo(this.jdbcDao.getTotalCount(indexName));
-		});
-	}
+        this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
+            this.elasticsearchDao.refresh(indexName);
+            assertThat(this.elasticsearchDao.indexTotalCount(indexName))
+                    .isEqualTo(this.jdbcDao.getTotalCount(indexName));
+        });
+    }
 
 }

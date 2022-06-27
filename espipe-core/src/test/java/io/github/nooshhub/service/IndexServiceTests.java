@@ -35,30 +35,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(properties = "spring.profiles.active:h2")
 public class IndexServiceTests {
 
-	@Autowired
-	private IndexService indexService;
+    @Autowired
+    private IndexService indexService;
 
-	@Autowired
-	private IndexConfigRegistry indexConfigRegistry;
+    @Autowired
+    private IndexConfigRegistry indexConfigRegistry;
 
-	@Autowired
-	private ElasticsearchDao elasticsearchDao;
+    @Autowired
+    private ElasticsearchDao elasticsearchDao;
 
-	@Autowired
-	private JdbcDao jdbcDao;
+    @Autowired
+    private JdbcDao jdbcDao;
 
-	@Test
-	public void init() {
-		this.indexService.init();
+    @Test
+    public void init() {
+        this.indexService.init();
 
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) ->
-			assertThat(this.elasticsearchDao.isIndexExist(indexName)).isTrue()
-		);
+        this.indexConfigRegistry.getIndexConfigs().keySet()
+                .forEach((indexName) -> assertThat(this.elasticsearchDao.isIndexExist(indexName)).isTrue());
 
-		this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
-			this.elasticsearchDao.refresh(indexName);
-			assertThat(this.elasticsearchDao.indexTotalCount(indexName)).isEqualTo(this.jdbcDao.getTotalCount(indexName));
-		});
-	}
+        this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> {
+            this.elasticsearchDao.refresh(indexName);
+            assertThat(this.elasticsearchDao.indexTotalCount(indexName))
+                    .isEqualTo(this.jdbcDao.getTotalCount(indexName));
+        });
+    }
 
 }

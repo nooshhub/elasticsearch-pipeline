@@ -24,8 +24,8 @@ package io.github.nooshhub.exception;
  */
 public class EspipeException extends RuntimeException {
 
-	public EspipeException(String message) {
-		super(message);
-	}
+    public EspipeException(String message) {
+        super(message);
+    }
 
 }

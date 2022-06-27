@@ -39,64 +39,64 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ElasticsearchConfiguration {
 
-	/**
-	 * create a ElasticsearchClient java bean.
-	 * @param espipeElasticsearchProperties espipe elasticsearch properties from
-	 * application.yml
-	 * @return elasticsearchClient java bean
-	 */
-	@Bean
-	public ElasticsearchClient esClient(EspipeElasticsearchProperties espipeElasticsearchProperties) {
-		// Create the low-level client
-		RestClient restClient = RestClient
-				.builder(new HttpHost(espipeElasticsearchProperties.getHost(), espipeElasticsearchProperties.getPort(),
-						espipeElasticsearchProperties.getProtocol()))
-				// enable keepalive to 300s, to be less than the ELB idle time 350s
-				// so client can close connection first
-				.setHttpClientConfigCallback(
-						(httpClientBuilder) -> httpClientBuilder.setKeepAliveStrategy((response, context) -> 300000)
-								.setDefaultIOReactorConfig(IOReactorConfig.custom().setSoKeepAlive(true).build()))
-				// raise the connection timeout from 1s to 5s to exclude the timeout issue
-				.setRequestConfigCallback((requestConfigBuilder) -> requestConfigBuilder.setConnectTimeout(5000))
-				.build();
+    /**
+     * create a ElasticsearchClient java bean.
+     * @param espipeElasticsearchProperties espipe elasticsearch properties from
+     * application.yml
+     * @return elasticsearchClient java bean
+     */
+    @Bean
+    public ElasticsearchClient esClient(EspipeElasticsearchProperties espipeElasticsearchProperties) {
+        // Create the low-level client
+        RestClient restClient = RestClient
+                .builder(new HttpHost(espipeElasticsearchProperties.getHost(), espipeElasticsearchProperties.getPort(),
+                        espipeElasticsearchProperties.getProtocol()))
+                // enable keepalive to 300s, to be less than the ELB idle time 350s
+                // so client can close connection first
+                .setHttpClientConfigCallback(
+                        (httpClientBuilder) -> httpClientBuilder.setKeepAliveStrategy((response, context) -> 300000)
+                                .setDefaultIOReactorConfig(IOReactorConfig.custom().setSoKeepAlive(true).build()))
+                // raise the connection timeout from 1s to 5s to exclude the timeout issue
+                .setRequestConfigCallback((requestConfigBuilder) -> requestConfigBuilder.setConnectTimeout(5000))
+                .build();
 
-		// Create the transport with a Jackson mapper
-		final JacksonJsonpMapper mapper = new JacksonJsonpMapper();
-		mapper.objectMapper().setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
-		ElasticsearchTransport transport = new RestClientTransport(restClient, mapper);
+        // Create the transport with a Jackson mapper
+        final JacksonJsonpMapper mapper = new JacksonJsonpMapper();
+        mapper.objectMapper().setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
+        ElasticsearchTransport transport = new RestClientTransport(restClient, mapper);
 
-		// And create the API client
-		return new ElasticsearchClient(transport);
-	}
+        // And create the API client
+        return new ElasticsearchClient(transport);
+    }
 
-	/**
-	 * create a ElasticsearchClient java bean.
-	 * @param espipeElasticsearchProperties espipe elasticsearch properties from
-	 * application.yml
-	 * @return elasticsearchClient java bean
-	 */
-	@Bean
-	public ElasticsearchAsyncClient esAsyncClient(EspipeElasticsearchProperties espipeElasticsearchProperties) {
-		// Create the low-level client
-		RestClient restClient = RestClient
-				.builder(new HttpHost(espipeElasticsearchProperties.getHost(), espipeElasticsearchProperties.getPort(),
-						espipeElasticsearchProperties.getProtocol()))
-				// enable keepalive to 300s, to be less than the ELB idle time 350s
-				// so client can close connection first
-				.setHttpClientConfigCallback(
-						(httpClientBuilder) -> httpClientBuilder.setKeepAliveStrategy((response, context) -> 300000)
-								.setDefaultIOReactorConfig(IOReactorConfig.custom().setSoKeepAlive(true).build()))
-				// raise the connection timeout from 1s to 5s to exclude the timeout issue
-				.setRequestConfigCallback((requestConfigBuilder) -> requestConfigBuilder.setConnectTimeout(5000))
-				.build();
+    /**
+     * create a ElasticsearchClient java bean.
+     * @param espipeElasticsearchProperties espipe elasticsearch properties from
+     * application.yml
+     * @return elasticsearchClient java bean
+     */
+    @Bean
+    public ElasticsearchAsyncClient esAsyncClient(EspipeElasticsearchProperties espipeElasticsearchProperties) {
+        // Create the low-level client
+        RestClient restClient = RestClient
+                .builder(new HttpHost(espipeElasticsearchProperties.getHost(), espipeElasticsearchProperties.getPort(),
+                        espipeElasticsearchProperties.getProtocol()))
+                // enable keepalive to 300s, to be less than the ELB idle time 350s
+                // so client can close connection first
+                .setHttpClientConfigCallback(
+                        (httpClientBuilder) -> httpClientBuilder.setKeepAliveStrategy((response, context) -> 300000)
+                                .setDefaultIOReactorConfig(IOReactorConfig.custom().setSoKeepAlive(true).build()))
+                // raise the connection timeout from 1s to 5s to exclude the timeout issue
+                .setRequestConfigCallback((requestConfigBuilder) -> requestConfigBuilder.setConnectTimeout(5000))
+                .build();
 
-		// Create the transport with a Jackson mapper
-		final JacksonJsonpMapper mapper = new JacksonJsonpMapper();
-		mapper.objectMapper().setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
-		ElasticsearchTransport transport = new RestClientTransport(restClient, mapper);
+        // Create the transport with a Jackson mapper
+        final JacksonJsonpMapper mapper = new JacksonJsonpMapper();
+        mapper.objectMapper().setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'"));
+        ElasticsearchTransport transport = new RestClientTransport(restClient, mapper);
 
-		// And create the API client
-		return new ElasticsearchAsyncClient(transport);
-	}
+        // And create the API client
+        return new ElasticsearchAsyncClient(transport);
+    }
 
 }

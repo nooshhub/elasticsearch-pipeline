@@ -32,52 +32,52 @@ import org.springframework.stereotype.Service;
 @Service
 public class EspipeTimerDao {
 
-	private static final String FIND_LAST_REFRESH_TIME_SQL = "select last_refresh_time from espipe_timer where index_name = ? ";
+    private static final String FIND_LAST_REFRESH_TIME_SQL = "select last_refresh_time from espipe_timer where index_name = ? ";
 
-	private static final String INSERT = "insert into espipe_timer values (?,?)";
+    private static final String INSERT = "insert into espipe_timer values (?,?)";
 
-	private static final String UPDATE = "update espipe_timer set last_refresh_time = ? where index_name = ?";
+    private static final String UPDATE = "update espipe_timer set last_refresh_time = ? where index_name = ?";
 
-	private static final String DELETE = "delete from espipe_timer where index_name = ?";
+    private static final String DELETE = "delete from espipe_timer where index_name = ?";
 
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-	/**
-	 * rest the last refresh time by index name and current refresh time.
-	 * @param indexName index name
-	 * @param currentRefreshTime current refresh time
-	 */
-	public void save(String indexName, LocalDateTime currentRefreshTime) {
-		LocalDateTime lastRefreshTime = findLastRefreshTime(indexName);
-		if (lastRefreshTime == null) {
-			this.jdbcTemplate.update(INSERT, indexName, currentRefreshTime);
-		}
-		else {
-			this.jdbcTemplate.update(UPDATE, currentRefreshTime, indexName);
-		}
-	}
+    /**
+     * rest the last refresh time by index name and current refresh time.
+     * @param indexName index name
+     * @param currentRefreshTime current refresh time
+     */
+    public void save(String indexName, LocalDateTime currentRefreshTime) {
+        LocalDateTime lastRefreshTime = findLastRefreshTime(indexName);
+        if (lastRefreshTime == null) {
+            this.jdbcTemplate.update(INSERT, indexName, currentRefreshTime);
+        }
+        else {
+            this.jdbcTemplate.update(UPDATE, currentRefreshTime, indexName);
+        }
+    }
 
-	/**
-	 * delete the last refresh time by index name.
-	 * @param indexName index name
-	 */
-	public void delete(String indexName) {
-		this.jdbcTemplate.update(DELETE, indexName);
-	}
+    /**
+     * delete the last refresh time by index name.
+     * @param indexName index name
+     */
+    public void delete(String indexName) {
+        this.jdbcTemplate.update(DELETE, indexName);
+    }
 
-	/**
-	 * find last refresh time by index name.
-	 * @param indexName index name
-	 * @return last refresh time
-	 */
-	public LocalDateTime findLastRefreshTime(String indexName) {
-		try {
-			return this.jdbcTemplate.queryForObject(FIND_LAST_REFRESH_TIME_SQL, LocalDateTime.class, indexName);
-		}
-		catch (EmptyResultDataAccessException ex) {
-			return null;
-		}
-	}
+    /**
+     * find last refresh time by index name.
+     * @param indexName index name
+     * @return last refresh time
+     */
+    public LocalDateTime findLastRefreshTime(String indexName) {
+        try {
+            return this.jdbcTemplate.queryForObject(FIND_LAST_REFRESH_TIME_SQL, LocalDateTime.class, indexName);
+        }
+        catch (EmptyResultDataAccessException ex) {
+            return null;
+        }
+    }
 
 }

@@ -24,96 +24,96 @@ package io.github.nooshhub.config;
  */
 public class IndexConfig {
 
-	private String indexName;
+    private String indexName;
 
-	// index settings and mappings
-	private String indexSettingsPath;
+    // index settings and mappings
+    private String indexSettingsPath;
 
-	private String indexMappingPath;
+    private String indexMappingPath;
 
-	// sql
-	private String initSql;
+    // sql
+    private String initSql;
 
-	private String syncSql;
+    private String syncSql;
 
-	private String deleteSql;
+    private String deleteSql;
 
-	private String extensionSql;
+    private String extensionSql;
 
-	private String idColumns;
+    private String idColumns;
 
-	private String extensionColumn;
+    private String extensionColumn;
 
-	public String getIndexName() {
-		return this.indexName;
-	}
+    public String getIndexName() {
+        return this.indexName;
+    }
 
-	public void setIndexName(String indexName) {
-		this.indexName = indexName;
-	}
+    public void setIndexName(String indexName) {
+        this.indexName = indexName;
+    }
 
-	public String getIndexSettingsPath() {
-		return this.indexSettingsPath;
-	}
+    public String getIndexSettingsPath() {
+        return this.indexSettingsPath;
+    }
 
-	public void setIndexSettingsPath(String indexSettingsPath) {
-		this.indexSettingsPath = indexSettingsPath;
-	}
+    public void setIndexSettingsPath(String indexSettingsPath) {
+        this.indexSettingsPath = indexSettingsPath;
+    }
 
-	public String getIndexMappingPath() {
-		return this.indexMappingPath;
-	}
+    public String getIndexMappingPath() {
+        return this.indexMappingPath;
+    }
 
-	public void setIndexMappingPath(String indexMappingPath) {
-		this.indexMappingPath = indexMappingPath;
-	}
+    public void setIndexMappingPath(String indexMappingPath) {
+        this.indexMappingPath = indexMappingPath;
+    }
 
-	public String getInitSql() {
-		return this.initSql;
-	}
+    public String getInitSql() {
+        return this.initSql;
+    }
 
-	public void setInitSql(String initSql) {
-		this.initSql = initSql;
-	}
+    public void setInitSql(String initSql) {
+        this.initSql = initSql;
+    }
 
-	public String getSyncSql() {
-		return this.syncSql;
-	}
+    public String getSyncSql() {
+        return this.syncSql;
+    }
 
-	public void setSyncSql(String syncSql) {
-		this.syncSql = syncSql;
-	}
+    public void setSyncSql(String syncSql) {
+        this.syncSql = syncSql;
+    }
 
-	public String getDeleteSql() {
-		return this.deleteSql;
-	}
+    public String getDeleteSql() {
+        return this.deleteSql;
+    }
 
-	public void setDeleteSql(String deleteSql) {
-		this.deleteSql = deleteSql;
-	}
+    public void setDeleteSql(String deleteSql) {
+        this.deleteSql = deleteSql;
+    }
 
-	public String getExtensionSql() {
-		return this.extensionSql;
-	}
+    public String getExtensionSql() {
+        return this.extensionSql;
+    }
 
-	public void setExtensionSql(String extensionSql) {
-		this.extensionSql = extensionSql;
-	}
+    public void setExtensionSql(String extensionSql) {
+        this.extensionSql = extensionSql;
+    }
 
-	public String getIdColumns() {
-		return this.idColumns;
-	}
+    public String getIdColumns() {
+        return this.idColumns;
+    }
 
-	public void setIdColumns(String idColumns) {
-		this.idColumns = idColumns;
-	}
+    public void setIdColumns(String idColumns) {
+        this.idColumns = idColumns;
+    }
 
-	public String getExtensionColumn() {
-		return this.extensionColumn;
-	}
+    public String getExtensionColumn() {
+        return this.extensionColumn;
+    }
 
-	public void setExtensionColumn(String extensionColumn) {
-		this.extensionColumn = extensionColumn;
-	}
+    public void setExtensionColumn(String extensionColumn) {
+        this.extensionColumn = extensionColumn;
+    }
 
 }

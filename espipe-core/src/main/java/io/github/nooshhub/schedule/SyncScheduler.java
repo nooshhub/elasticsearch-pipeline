@@ -36,20 +36,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class SyncScheduler {
 
-	@Autowired
-	private IndexConfigRegistry indexConfigRegistry;
+    @Autowired
+    private IndexConfigRegistry indexConfigRegistry;
 
-	@Autowired
-	private JdbcDao jdbcDao;
+    @Autowired
+    private JdbcDao jdbcDao;
 
-	private final ExecutorService executorService = AbstractThreadPoolFactory.poolForSync();
+    private final ExecutorService executorService = AbstractThreadPoolFactory.poolForSync();
 
-	@Scheduled(fixedRate = 5000)
-	public void sync() {
-		// TODO: if init thread is exist, sync should not be performed
-		this.indexConfigRegistry.getIndexConfigs().keySet()
-				.forEach((indexName) -> this.executorService.execute(new SyncThread(this.jdbcDao, indexName)));
-		// TODO: shutdownhook for sync
-	}
+    @Scheduled(fixedRate = 5000)
+    public void sync() {
+        // TODO: if init thread is exist, sync should not be performed
+        this.indexConfigRegistry.getIndexConfigs().keySet()
+                .forEach((indexName) -> this.executorService.execute(new SyncThread(this.jdbcDao, indexName)));
+        // TODO: shutdownhook for sync
+    }
 
 }
