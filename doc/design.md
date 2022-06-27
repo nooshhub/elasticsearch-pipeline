@@ -2,7 +2,7 @@
 
 ![Architecture](images/architecture.png)
 
-![N TO 1](https://mmbiz.qpic.cn/mmbiz_png/RGINbiaOhjW9feEzaNvCSyUEUEuNwArQECPapibVmdDhlYeLdDpyVDia1FOviau2JQibH8ZWVArJAm2hOVBJD4jV69g/640?wx_fmt=png&wxfrom=5&wx_lazy=1&wx_co=1)
+![N TO 1](images/n21.png)
 
 - case 1: aggregate fields to one field was failed, since sql field has length limit
 ```
