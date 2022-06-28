@@ -47,12 +47,12 @@ public class PleaseController {
 
     @GetMapping("please/stop/init/all")
     public void stopInitAll() {
-        // TODO: how to stop https://www.baeldung.com/java-thread-stop
+        this.indexService.stop();
     }
 
     @GetMapping("please/stop/init/{indexName}")
-    public void stopInitOne() {
-
+    public void stopInitOne(@PathVariable("indexName") String indexName) {
+        this.indexService.stop(indexName);
     }
 
     @GetMapping("please/start/sync/all")
@@ -82,7 +82,7 @@ public class PleaseController {
 
     @GetMapping("please/show/metrics")
     public void showMetrics() {
-
+        this.indexService.showMetrics();
     }
 
 }

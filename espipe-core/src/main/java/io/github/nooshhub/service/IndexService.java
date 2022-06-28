@@ -16,11 +16,13 @@
 
 package io.github.nooshhub.service;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
 import io.github.nooshhub.concurrent.InitThread;
+import io.github.nooshhub.concurrent.InitThreadPoolExecutor;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
@@ -46,7 +48,7 @@ public class IndexService {
     @Autowired
     private JdbcDao jdbcDao;
 
-    private final ExecutorService executorService = AbstractThreadPoolFactory.poolForInit();
+    private final InitThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForInit();
 
     public void init() {
         this.indexConfigRegistry.getIndexConfigs().keySet()
@@ -77,4 +79,15 @@ public class IndexService {
         }
     }
 
+    public void stop() {
+        this.executorService.shutdownNow();
+    }
+
+    public void stop(String indexName) {
+        this.executorService.stop(indexName);
+    }
+
+    public void showMetrics() {
+        this.executorService.showMetrics();
+    }
 }

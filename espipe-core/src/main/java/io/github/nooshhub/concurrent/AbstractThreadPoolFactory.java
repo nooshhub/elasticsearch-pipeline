@@ -31,9 +31,9 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class AbstractThreadPoolFactory {
 
-    public static ThreadPoolExecutor poolForInit() {
+    public static InitThreadPoolExecutor poolForInit() {
         final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 3;
-        return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
+        return new InitThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(), new CustomThreadFactory("init"));
     }
 

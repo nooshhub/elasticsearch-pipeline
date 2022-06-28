@@ -69,7 +69,7 @@
                     <profiles>
                         <profile>h2</profile>
                     </profiles>
-                    <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=18523</jvmArguments>
+                    <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=18713</jvmArguments>
                 </configuration>
             </plugin>
 		</plugins>

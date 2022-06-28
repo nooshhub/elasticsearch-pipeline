@@ -40,4 +40,7 @@ public class InitThread implements Runnable {
         this.jdbcDao.init(this.indexName);
     }
 
+    public String getIndexName() {
+        return indexName;
+    }
 }

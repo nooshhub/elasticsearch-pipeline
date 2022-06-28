@@ -13,7 +13,10 @@ spring:
   # save 50% of performance by set fetch-size to 100, default is 10, 100k is reduced 7s to 3.5s
   jdbc.template.fetch-size: 100
   task.scheduling.pool.size: 4
-  
+
 logging:
   file:
     name: log/espipe.log
+
+server:
+  port: 8713
