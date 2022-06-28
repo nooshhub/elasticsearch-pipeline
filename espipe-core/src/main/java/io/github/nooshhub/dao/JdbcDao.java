@@ -140,7 +140,7 @@ public class JdbcDao {
         sw.stop();
 
         // reset after init script finished, or sync script will create document, index
-        // settings will be changed
+        // settings will be changed, since sync is based on last refresh time.
         this.espipeTimerDao.save(indexName, currentRefreshTime);
         logger.info("Init index {} success", indexName);
         logger.info("Total time: {}s", sw.getTotalTimeSeconds());
