@@ -22,6 +22,7 @@ import io.github.nooshhub.service.SyncIndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -49,8 +50,8 @@ public class PleaseController {
     }
 
     @GetMapping("please/stop/init/all")
-    public void stopInitAll() {
-        this.initIndexService.stop();
+    public void stopInitAll(@RequestParam(value = "wait", defaultValue = "false") boolean wait) {
+        this.initIndexService.stop(wait);
     }
 
     @GetMapping("please/stop/init/{indexName}")
@@ -69,8 +70,8 @@ public class PleaseController {
     }
 
     @GetMapping("please/stop/sync/all")
-    public void stopSyncAll() {
-        this.syncIndexService.stop();
+    public void stopSyncAll(@RequestParam(value = "wait", defaultValue = "false") boolean wait) {
+        this.syncIndexService.stop(wait);
     }
 
     @GetMapping("please/stop/sync/{indexName}")

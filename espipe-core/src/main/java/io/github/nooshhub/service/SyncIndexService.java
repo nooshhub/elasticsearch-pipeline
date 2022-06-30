@@ -52,15 +52,9 @@ public class SyncIndexService {
     private final SyncThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForSync();
 
     public void sync() {
-        stop();
-
         // TODO: if init thread is exist, sync should not be performed
         this.indexConfigRegistry.getIndexConfigs().keySet()
-                .forEach((indexName) -> this.executorService.scheduleWithFixedDelay(
-                        new SyncThread(this.jdbcDao, indexName),
-                        1000,
-                        5000,
-                        TimeUnit.MILLISECONDS));
+                .forEach(this::sync);
     }
 
     public void sync(String indexName) {
@@ -73,8 +67,21 @@ public class SyncIndexService {
                 TimeUnit.MILLISECONDS);
     }
 
-    public void stop() {
-        this.executorService.shutdownNow();
+    public void stop(boolean wait) {
+        if (wait) {
+            this.executorService.shutdown();
+            try {
+                this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            }
+            catch (InterruptedException ex) {
+                log.warn("Interrupted!");
+                // Restore interrupted state...
+                Thread.currentThread().interrupt();
+            }
+        }
+        else {
+            this.executorService.shutdownNow();
+        }
     }
 
     public void stop(String indexName) {

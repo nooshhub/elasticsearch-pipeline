@@ -49,40 +49,32 @@ public class InitIndexService {
     private final InitThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForInit();
 
     public void init() {
-        stop();
-        
         this.indexConfigRegistry.getIndexConfigs().keySet()
-                .forEach((indexName) -> this.executorService.execute(new InitThread(this.jdbcDao, indexName)));
-
-        this.executorService.shutdown();
-        try {
-            this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        }
-        catch (InterruptedException ex) {
-            log.warn("Interrupted!");
-            // Restore interrupted state...
-            Thread.currentThread().interrupt();
-        }
+                .forEach(this::init);
     }
 
     public void init(String indexName) {
         stop(indexName);
 
         this.executorService.execute(new InitThread(this.jdbcDao, indexName));
-
-        this.executorService.shutdown();
-        try {
-            this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        }
-        catch (InterruptedException ex) {
-            log.warn("Interrupted!");
-            // Restore interrupted state...
-            Thread.currentThread().interrupt();
-        }
     }
 
-    public void stop() {
-        this.executorService.shutdownNow();
+    public void stop(boolean wait) {
+        if (wait) {
+            this.executorService.shutdown();
+            try {
+                this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            }
+            catch (InterruptedException ex) {
+                log.warn("Interrupted!");
+                // Restore interrupted state...
+                Thread.currentThread().interrupt();
+            }
+        }
+        else {
+            this.executorService.shutdownNow();
+        }
+
     }
 
     public void stop(String indexName) {

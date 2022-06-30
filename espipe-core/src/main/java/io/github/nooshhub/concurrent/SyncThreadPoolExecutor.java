@@ -47,8 +47,8 @@ public class SyncThreadPoolExecutor extends ScheduledThreadPoolExecutor {
     }
 
     protected void afterExecute(Runnable r, Throwable t) {
-        if (r instanceof InitThread) {
-            tasks.remove(((InitThread)r).getIndexName());
+        if (r instanceof SyncThread) {
+            tasks.remove(((SyncThread)r).getIndexName());
         }
     }
 
