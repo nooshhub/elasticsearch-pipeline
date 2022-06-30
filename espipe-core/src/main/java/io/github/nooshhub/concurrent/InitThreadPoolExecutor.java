@@ -62,12 +62,13 @@ public class InitThreadPoolExecutor extends ThreadPoolExecutor {
 
     protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
+        log.info("{} {}", r, t);
+
         if (t == null
                 && r instanceof Future<?>
                 && ((Future<?>) r).isDone()) {
             try {
                 Object result = ((Future<?>) r).get();
-                System.out.println(result.getClass());
             } catch (CancellationException ce) {
                 t = ce;
             } catch (ExecutionException ee) {
