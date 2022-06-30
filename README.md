@@ -5,8 +5,18 @@ Support Elasticsearch version >= 7.17.4, current target version is 8.2.2.
 
 ### get started
 ```
-API is UNDER CONSTRUCTION, in version 0.0.3-SNAPSHOT   
-Please USE UNIT TEST TO HAVE A TRY
+http://localhost:8713/please/start/init/all
+http://localhost:8713/please/start/init/{indexName}
+http://localhost:8713/please/stop/init/all
+http://localhost:8713/please/stop/init/{indexName}
+http://localhost:8713/please/start/sync/all
+http://localhost:8713/please/start/sync/{indexName}
+http://localhost:8713/please/stop/sync/all
+http://localhost:8713/please/stop/sync/{indexName}
+http://localhost:8713/please/fix/{indexName}/{id}
+http://localhost:8713/please/show/metrics   
+
+# postman script is under src/test/postman
 ``` 
 
 ### develop
