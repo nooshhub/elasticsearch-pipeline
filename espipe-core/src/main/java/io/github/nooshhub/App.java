@@ -20,7 +20,6 @@ import java.util.TimeZone;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Main Entry.
@@ -28,7 +27,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @author Neal Shan
  * @since 0.0.1
  */
-@EnableScheduling
 @SpringBootApplication
 public class App {
 

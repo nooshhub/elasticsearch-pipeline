@@ -16,7 +16,8 @@
 
 package io.github.nooshhub.controller;
 
-import io.github.nooshhub.service.IndexService;
+import io.github.nooshhub.service.InitIndexService;
+import io.github.nooshhub.service.SyncIndexService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,56 +34,59 @@ import org.springframework.web.bind.annotation.RestController;
 public class PleaseController {
 
     @Autowired
-    private IndexService indexService;
+    private InitIndexService initIndexService;
+    @Autowired
+    private SyncIndexService syncIndexService;
 
     @GetMapping("please/start/init/all")
     public void startInitAll() {
-        this.indexService.init();
+        this.initIndexService.init();
     }
 
     @GetMapping("please/start/init/{indexName}")
     public void startInitOne(@PathVariable("indexName") String indexName) {
-        this.indexService.init(indexName);
+        this.initIndexService.init(indexName);
     }
 
     @GetMapping("please/stop/init/all")
     public void stopInitAll() {
-        this.indexService.stop();
+        this.initIndexService.stop();
     }
 
     @GetMapping("please/stop/init/{indexName}")
     public void stopInitOne(@PathVariable("indexName") String indexName) {
-        this.indexService.stop(indexName);
+        this.initIndexService.stop(indexName);
     }
 
     @GetMapping("please/start/sync/all")
     public void startSyncAll() {
-
+        this.syncIndexService.sync();
     }
 
     @GetMapping("please/start/sync/{indexName}")
-    public void startSyncOne() {
-
+    public void startSyncOne(@PathVariable("indexName") String indexName) {
+        this.syncIndexService.sync(indexName);
     }
 
     @GetMapping("please/stop/sync/all")
     public void stopSyncAll() {
-
+        this.syncIndexService.stop();
     }
 
     @GetMapping("please/stop/sync/{indexName}")
-    public void stopSyncOne() {
-
+    public void stopSyncOne(@PathVariable("indexName") String indexName) {
+        this.syncIndexService.stop(indexName);
     }
 
     @GetMapping("please/fix/{indexName}/{id}")
     public void fixOne() {
-
+        // TOOD: if the result do exist, then fix it.
     }
 
     @GetMapping("please/show/metrics")
     public void showMetrics() {
-        this.indexService.showMetrics();
+        this.initIndexService.showMetrics();
+        this.syncIndexService.showMetrics();
     }
 
 }

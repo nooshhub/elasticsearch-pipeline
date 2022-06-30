@@ -17,14 +17,9 @@
 package io.github.nooshhub.concurrent;
 
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,30 +28,22 @@ import org.slf4j.LoggerFactory;
  * @author Neal Shan
  * @since 6/28/2022
  */
-public class InitThreadPoolExecutor extends ThreadPoolExecutor {
+public class SyncThreadPoolExecutor extends ScheduledThreadPoolExecutor {
 
-    private static final Logger log = LoggerFactory.getLogger(InitThreadPoolExecutor.class);
+    private static final Logger log = LoggerFactory.getLogger(SyncThreadPoolExecutor.class);
 
-    private final Map<String, InitThread> tasks = new ConcurrentHashMap<>();
+    private final Map<String, SyncThread> tasks = new ConcurrentHashMap<>();
 
-    public InitThreadPoolExecutor(int corePoolSize,
-                                  int maximumPoolSize,
-                                  long keepAliveTime,
-                                  TimeUnit unit,
-                                  BlockingQueue<Runnable> workQueue,
+    public SyncThreadPoolExecutor(int corePoolSize,
                                   ThreadFactory threadFactory) {
         super(corePoolSize,
-                maximumPoolSize,
-                keepAliveTime,
-                unit,
-                workQueue,
                 threadFactory);
     }
 
     protected void beforeExecute(Thread t, Runnable r) {
-        final InitThread task = (InitThread) r;
+        final SyncThread task = (SyncThread) r;
         this.tasks.put(task.getIndexName(), task);
-        log.info("Start Init index {} task, thread {}", task.getIndexName(), t.getName());
+        log.info("Start Sync index {} task, thread {}", task.getIndexName(), t.getName());
     }
 
     protected void afterExecute(Runnable r, Throwable t) {
@@ -66,19 +53,19 @@ public class InitThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     public void stop(String indexName) {
-        InitThread task = this.tasks.get(indexName);
+        SyncThread task = this.tasks.get(indexName);
         if (task == null) {
             return;
         }
         
         task.stop();
         this.tasks.remove(indexName);
-        log.info("Stop Init index {} task", indexName);
+        log.info("Stop Sync index {} task", indexName);
     }
 
     public void showMetrics() {
         this.tasks.forEach((indexName, t) -> {
-            log.info("Metrics: Init index {} ", indexName);
+            log.info("Metrics: Sync index {} ", indexName);
         });
     }
 }

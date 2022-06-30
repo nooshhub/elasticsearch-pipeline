@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class IndexServiceTests {
 
     @Autowired
-    private IndexService indexService;
+    private InitIndexService initIndexService;
 
     @Autowired
     private IndexConfigRegistry indexConfigRegistry;
@@ -49,7 +49,7 @@ public class IndexServiceTests {
 
     @Test
     public void init() {
-        this.indexService.init();
+        this.initIndexService.init();
 
         this.indexConfigRegistry.getIndexConfigs().keySet()
                 .forEach((indexName) -> assertThat(this.elasticsearchDao.isIndexExist(indexName)).isTrue());

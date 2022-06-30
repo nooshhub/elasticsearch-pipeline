@@ -16,31 +16,32 @@
 
 package io.github.nooshhub.service;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
 import io.github.nooshhub.concurrent.InitThread;
-import io.github.nooshhub.concurrent.InitThreadPoolExecutor;
+import io.github.nooshhub.concurrent.SyncThread;
+import io.github.nooshhub.concurrent.SyncThreadPoolExecutor;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
- * Index Service.
+ * Espipe Scheduler is used to trigger synchronization task.
  *
  * @author Neal Shan
- * @since 6/12/2022
+ * @since 6/4/2022
  */
 @Service
-public class IndexService {
+public class SyncIndexService {
 
-    private static final Logger logger = LoggerFactory.getLogger(IndexService.class);
+    private static final Logger log = LoggerFactory.getLogger(SyncIndexService.class);
 
     @Autowired
     private IndexConfigRegistry indexConfigRegistry;
@@ -48,35 +49,28 @@ public class IndexService {
     @Autowired
     private JdbcDao jdbcDao;
 
-    private final InitThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForInit();
+    private final SyncThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForSync();
 
-    public void init() {
+    public void sync() {
+        stop();
+
+        // TODO: if init thread is exist, sync should not be performed
         this.indexConfigRegistry.getIndexConfigs().keySet()
-                .forEach((indexName) -> this.executorService.execute(new InitThread(this.jdbcDao, indexName)));
-
-        this.executorService.shutdown();
-        try {
-            this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        }
-        catch (InterruptedException ex) {
-            logger.warn("Interrupted!");
-            // Restore interrupted state...
-            Thread.currentThread().interrupt();
-        }
+                .forEach((indexName) -> this.executorService.scheduleWithFixedDelay(
+                        new SyncThread(this.jdbcDao, indexName),
+                        1000,
+                        5000,
+                        TimeUnit.MILLISECONDS));
     }
 
-    public void init(String indexName) {
-        this.executorService.execute(new InitThread(this.jdbcDao, indexName));
+    public void sync(String indexName) {
+        stop(indexName);
 
-        this.executorService.shutdown();
-        try {
-            this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        }
-        catch (InterruptedException ex) {
-            logger.warn("Interrupted!");
-            // Restore interrupted state...
-            Thread.currentThread().interrupt();
-        }
+        this.executorService.scheduleWithFixedDelay(
+                new SyncThread(this.jdbcDao, indexName),
+                1000,
+                5000,
+                TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
@@ -90,4 +84,5 @@ public class IndexService {
     public void showMetrics() {
         this.executorService.showMetrics();
     }
+
 }
