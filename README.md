@@ -16,7 +16,7 @@ http://localhost:8713/please/stop/sync/{indexName}
 http://localhost:8713/please/fix/{indexName}/{id}
 http://localhost:8713/please/show/metrics   
 
-# postman script is under src/test/postman
+# postman script is under espipe-core/src/test/postman
 ``` 
 
 ### develop
