@@ -17,6 +17,7 @@
 package io.github.nooshhub.concurrent;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -36,10 +37,10 @@ public abstract class AbstractThreadPoolFactory {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractThreadPoolFactory.class);
 
-    public static InitThreadPoolExecutor poolForInit() {
+    public static ThreadPoolExecutor poolForInit() {
         final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 3;
         log.info("number of threads {}", nThreads);
-        final InitThreadPoolExecutor threadPoolExecutor = new InitThreadPoolExecutor(
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 nThreads,
                 nThreads,
                 0L,
@@ -50,10 +51,10 @@ public abstract class AbstractThreadPoolFactory {
         return threadPoolExecutor;
     }
 
-    public static SyncThreadPoolExecutor poolForSync() {
+    public static ScheduledThreadPoolExecutor poolForSync() {
         final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 1;
         log.info("number of threads {}", nThreads);
-        final SyncThreadPoolExecutor threadPoolExecutor = new SyncThreadPoolExecutor(nThreads,
+        final ScheduledThreadPoolExecutor threadPoolExecutor = new ScheduledThreadPoolExecutor(nThreads,
                 new CustomThreadFactory("sync"));
         log.info(threadPoolExecutor.toString());
         return threadPoolExecutor;

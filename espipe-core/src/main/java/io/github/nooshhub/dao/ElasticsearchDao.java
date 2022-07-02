@@ -37,7 +37,7 @@ import co.elastic.clients.elasticsearch.indices.PutIndicesSettingsRequest;
 import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
 import io.github.nooshhub.config.IndexConfig;
 import io.github.nooshhub.config.IndexConfigRegistry;
-import io.github.nooshhub.exception.EspipeException;
+import io.github.nooshhub.common.exception.EspipeException;
 import io.github.nooshhub.support.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

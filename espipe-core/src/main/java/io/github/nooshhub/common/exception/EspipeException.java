@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub.exception;
+package io.github.nooshhub.common.exception;
 
 /**
  * Espipe Exception.

@@ -15,6 +15,8 @@
  */
 
 /**
- * Exceptions.
+ * Common usage like VO, DTO, Exception.
+ * @author Neal Shan
+ * @since 7/2/2022
  */
-package io.github.nooshhub.exception;
+package io.github.nooshhub.common;

@@ -14,34 +14,27 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub.concurrent;
+package io.github.nooshhub.service;
 
-import io.github.nooshhub.dao.JdbcDao;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+
 
 /**
- * Init index thread.
- *
  * @author Neal Shan
- * @since 6/12/2022
+ * @since 7/2/2022
  */
-public class SyncThread implements Runnable {
+public class InitSyncManager {
+    private static final Map<String, Future> initInProgress = new ConcurrentHashMap<>();
+    private static final Map<String, ScheduledFuture> syncInProgress = new ConcurrentHashMap<>();
 
-    private final JdbcDao jdbcDao;
-
-    private final String indexName;
-
-    public SyncThread(JdbcDao jdbcDao, String indexName) {
-        this.jdbcDao = jdbcDao;
-        this.indexName = indexName;
+    public static Map<String, Future> getInitInProgress() {
+        return initInProgress;
     }
 
-    @Override
-    public void run() {
-        this.jdbcDao.sync(this.indexName);
+    public static Map<String, ScheduledFuture> getSyncInProgress() {
+        return syncInProgress;
     }
-
-    public String getIndexName() {
-        return indexName;
-    }
-
 }

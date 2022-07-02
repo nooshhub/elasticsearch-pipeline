@@ -16,20 +16,21 @@
 
 package io.github.nooshhub.service;
 
-import java.util.concurrent.ExecutorService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
-import io.github.nooshhub.concurrent.InitThread;
 import io.github.nooshhub.concurrent.SyncThread;
-import io.github.nooshhub.concurrent.SyncThreadPoolExecutor;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 /**
@@ -49,47 +50,70 @@ public class SyncIndexService {
     @Autowired
     private JdbcDao jdbcDao;
 
-    private final SyncThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForSync();
+    private final ScheduledThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForSync();
 
-    public void sync() {
-        // TODO: if init thread is exist, sync should not be performed
+    public List<String> sync() {
+        List<String> messages = new ArrayList<>();
         this.indexConfigRegistry.getIndexConfigs().keySet()
-                .forEach(this::sync);
+                .forEach(indexName -> messages.add(this.sync(indexName)));
+        return messages;
     }
 
-    public void sync(String indexName) {
-        stop(indexName);
+    public String sync(String indexName) {
+        if (InitSyncManager.getInitInProgress().containsKey(indexName)) {
+            final String message = String.format("Index %s is in init progress, skip sync.", indexName);
+            log.info(message);
+            return message;
+        }
 
-        this.executorService.scheduleWithFixedDelay(
+        if (InitSyncManager.getSyncInProgress().containsKey(indexName)) {
+            final String message = String.format("Index %s is in sync progress, skip sync.", indexName);
+            log.info(message);
+            return message;
+        }
+
+        ScheduledFuture scheduledFuture = this.executorService.scheduleWithFixedDelay(
                 new SyncThread(this.jdbcDao, indexName),
                 1000,
                 5000,
                 TimeUnit.MILLISECONDS);
+
+        InitSyncManager.getSyncInProgress().put(indexName, scheduledFuture);
+
+        final String message = String.format("Sync index %s is in progress", indexName);
+        log.info(message);
+        return message;
     }
 
-    public void stop(boolean wait) {
-        if (wait) {
-            this.executorService.shutdown();
-            try {
-                this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            }
-            catch (InterruptedException ex) {
-                log.warn("Interrupted!");
-                // Restore interrupted state...
-                Thread.currentThread().interrupt();
-            }
+    public String stop() {
+        InitSyncManager.getSyncInProgress().values().forEach(future -> future.cancel(true));
+        InitSyncManager.getSyncInProgress().clear();
+        final String message = "Shutdown all sync";
+        log.info(message);
+        return message;
+    }
+
+    public String stop(String indexName) {
+        if (InitSyncManager.getSyncInProgress().containsKey(indexName)) {
+            InitSyncManager.getSyncInProgress().get(indexName).cancel(true);
+            InitSyncManager.getSyncInProgress().remove(indexName);
+
+            final String message = String.format("Remove index %s from sync in progress", indexName);
+            log.info(message);
+            return message;
+        } else {
+            final String message = String.format("Index %s is not in sync in progress", indexName);
+            log.info(message);
+            return message;
         }
-        else {
-            this.executorService.shutdownNow();
-        }
     }
 
-    public void stop(String indexName) {
-        this.executorService.stop(indexName);
-    }
-
-    public void showMetrics() {
-        this.executorService.showMetrics();
+    public Metrics getMetrics() {
+        Metrics metrics = new Metrics();
+        metrics.setInitInProgress(InitSyncManager.getSyncInProgress().keySet());
+        metrics.setJdbcMetric(this.jdbcDao.jdbcMetrics());
+        metrics.setThreadPoolMetric(this.executorService.toString());
+        return metrics;
     }
 
 }

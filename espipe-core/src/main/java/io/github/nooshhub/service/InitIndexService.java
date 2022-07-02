@@ -16,11 +16,15 @@
 
 package io.github.nooshhub.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
 import io.github.nooshhub.concurrent.InitThread;
-import io.github.nooshhub.concurrent.InitThreadPoolExecutor;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
@@ -46,42 +50,59 @@ public class InitIndexService {
     @Autowired
     private JdbcDao jdbcDao;
 
-    private final InitThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForInit();
+    private final ThreadPoolExecutor executorService = AbstractThreadPoolFactory.poolForInit();
 
-    public void init() {
+    public List<String> init() {
+        List<String> messages = new ArrayList<>();
         this.indexConfigRegistry.getIndexConfigs().keySet()
-                .forEach(this::init);
+                .forEach(indexName -> messages.add(this.init(indexName)));
+        return messages;
     }
 
-    public void init(String indexName) {
-        stop(indexName);
-
-        this.executorService.execute(new InitThread(this.jdbcDao, indexName));
-    }
-
-    public void stop(boolean wait) {
-        if (wait) {
-            this.executorService.shutdown();
-            try {
-                this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            }
-            catch (InterruptedException ex) {
-                log.warn("Interrupted!");
-                // Restore interrupted state...
-                Thread.currentThread().interrupt();
-            }
-        }
-        else {
-            this.executorService.shutdownNow();
+    public String init(String indexName) {
+        if (InitSyncManager.getInitInProgress().containsKey(indexName)) {
+            final String message = String.format("Index %s is in init progress, please stop it manually.", indexName);
+            log.info(message);
+            return message;
         }
 
+        Future<?> future = this.executorService.submit(new InitThread(this.jdbcDao, indexName));
+
+        InitSyncManager.getInitInProgress().put(indexName, future);
+
+        final String message = String.format("Init index %s is in progress", indexName);
+        log.info(message);
+        return message;
     }
 
-    public void stop(String indexName) {
-        this.executorService.stop(indexName);
+    public String stop() {
+        InitSyncManager.getInitInProgress().values().forEach(future -> future.cancel(true));
+        InitSyncManager.getInitInProgress().clear();
+        final String message = "Shutdown all init";
+        log.info(message);
+        return message;
     }
 
-    public void showMetrics() {
-        this.executorService.showMetrics();
+    public String stop(String indexName) {
+        if (InitSyncManager.getInitInProgress().containsKey(indexName)) {
+            InitSyncManager.getInitInProgress().get(indexName).cancel(true);
+            InitSyncManager.getInitInProgress().remove(indexName);
+
+            final String message = String.format("Remove index %s from init in progress", indexName);
+            log.info(message);
+            return message;
+        } else {
+            final String message = String.format("Index %s is not in init in progress", indexName);
+            log.info(message);
+            return message;
+        }
+    }
+
+    public Metrics getMetrics() {
+        Metrics metrics = new Metrics();
+        metrics.setInitInProgress(InitSyncManager.getInitInProgress().keySet());
+        metrics.setJdbcMetric(this.jdbcDao.jdbcMetrics());
+        metrics.setThreadPoolMetric(this.executorService.toString());
+        return metrics;
     }
 }

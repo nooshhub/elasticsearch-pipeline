@@ -30,9 +30,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.nooshhub.common.metric.JdbcMetric;
 import io.github.nooshhub.config.EspipeElasticsearchProperties;
 import io.github.nooshhub.config.IndexConfig;
 import io.github.nooshhub.config.IndexConfigRegistry;
@@ -53,7 +55,7 @@ import org.springframework.util.StopWatch;
 @Service
 public class JdbcDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(JdbcDao.class);
+    private static final Logger log = LoggerFactory.getLogger(JdbcDao.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -70,17 +72,21 @@ public class JdbcDao {
     @Autowired
     private IndexConfigRegistry indexConfigRegistry;
 
-    public void jdbcMetrics() {
-        // fetch size
-        logger.info("Fetch size {}, max rows {}, query timeout {}", this.jdbcTemplate.getFetchSize(),
-                this.jdbcTemplate.getMaxRows(), this.jdbcTemplate.getQueryTimeout());
+
+    public JdbcMetric jdbcMetrics() {
+        JdbcMetric metric = new JdbcMetric();
+        metric.setFetchSize(this.jdbcTemplate.getFetchSize());
+        metric.setMaxRows(this.jdbcTemplate.getMaxRows());
+        metric.setQueryTimeout(this.jdbcTemplate.getQueryTimeout());
 
         // connection size and status
         HikariDataSource ds = (HikariDataSource) this.jdbcTemplate.getDataSource();
         if (ds != null) {
-            logger.info("datasource max pool size {} auto commit {} Active Connections {}", ds.getMaximumPoolSize(),
-                    ds.isAutoCommit(), ds.getHikariPoolMXBean().getActiveConnections());
+            metric.setMaxPoolSize(ds.getMaximumPoolSize());
+            metric.setActiveConnections(ds.getHikariPoolMXBean().getActiveConnections());
         }
+
+        return metric;
     }
 
     /**
@@ -88,8 +94,10 @@ public class JdbcDao {
      * @param indexName index name
      */
     public void init(String indexName) {
+
+
         if (!this.elasticsearchDao.isServerUp()) {
-            logger.error("Elasticsearch server is not accessible, please Check.");
+            log.error("Elasticsearch server is not accessible, please Check.");
             return;
         }
 
@@ -113,8 +121,8 @@ public class JdbcDao {
                     // send per jdbcTemplate.getFetchSize()
                     boolean isSend = (rs.getRow() % this.espipeElasticsearchProperties.getBulkSize() == 0);
                     if (isSend) {
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("index data size {}", flattenMapList.size());
+                        if (log.isDebugEnabled()) {
+                            log.debug("index data size {}", flattenMapList.size());
                         }
                         extendFlattenMap(indexName, flattenMapList);
                         futures.add(this.elasticsearchDao.createDocument(indexName, flattenMapList));
@@ -126,8 +134,8 @@ public class JdbcDao {
         // process the rest of data, like we have total 12038, the above will process
         // 12000, the rest 38 will be processed here
         if (!flattenMapList.isEmpty()) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("index data size {}", flattenMapList.size());
+            if (log.isDebugEnabled()) {
+                log.debug("index data size {}", flattenMapList.size());
             }
             extendFlattenMap(indexName, flattenMapList);
             futures.add(this.elasticsearchDao.createDocument(indexName, flattenMapList));
@@ -142,8 +150,8 @@ public class JdbcDao {
         // reset after init script finished, or sync script will create document, index
         // settings will be changed, since sync is based on last refresh time.
         this.espipeTimerDao.save(indexName, currentRefreshTime);
-        logger.info("Init index {} success", indexName);
-        logger.info("Total time: {}s", sw.getTotalTimeSeconds());
+        log.info("Init index {} success", indexName);
+        log.info("Total time: {}s", sw.getTotalTimeSeconds());
     }
 
     /**
@@ -152,14 +160,14 @@ public class JdbcDao {
      */
     public void sync(String indexName) {
         if (!this.elasticsearchDao.isIndexExist(indexName)) {
-            logger.error("Index {} not exist, please init index manually.", indexName);
+            log.error("Index {} not exist, please init index manually.", indexName);
             return;
         }
 
         // get the last refresh time from the database, to continue synchronizing
         LocalDateTime lastRefreshTime = this.espipeTimerDao.findLastRefreshTime(indexName);
         if (lastRefreshTime == null) {
-            logger.warn("LastRefreshTime is null, please init index {} manually.", indexName);
+            log.warn("LastRefreshTime is null, please init index {} manually.", indexName);
             return;
         }
 
@@ -186,8 +194,8 @@ public class JdbcDao {
                 }
             }
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("syncing data for index {} from {} to {}", indexName,
+            if (log.isDebugEnabled()) {
+                log.debug("syncing data for index {} from {} to {}", indexName,
                         Timestamp.valueOf(decreasedLastRefreshTime), Timestamp.valueOf(currentRefreshTime));
             }
 
@@ -198,8 +206,8 @@ public class JdbcDao {
         });
 
         if (!flattenMapList.isEmpty()) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
+            if (log.isDebugEnabled()) {
+                log.debug("syncing data for index {} size {}", indexName, flattenMapList.size());
             }
             extendFlattenMap(indexName, flattenMapList);
             CompletableFuture<BulkResponse> bulkResFuture = this.elasticsearchDao.createDocument(indexName,

@@ -16,6 +16,9 @@
 
 package io.github.nooshhub.controller;
 
+import java.util.List;
+
+import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.service.InitIndexService;
 import io.github.nooshhub.service.SyncIndexService;
 
@@ -40,43 +43,43 @@ public class PleaseController {
     private SyncIndexService syncIndexService;
 
     @GetMapping("please/start/init/all")
-    public void startInitAll() {
-        this.initIndexService.init();
+    public List<String> startInitAll() {
+        return this.initIndexService.init();
     }
 
     @GetMapping("please/start/init/{indexName}")
-    public void startInitOne(@PathVariable("indexName") String indexName) {
-        this.initIndexService.init(indexName);
+    public String startInitOne(@PathVariable("indexName") String indexName) {
+        return this.initIndexService.init(indexName);
     }
 
     @GetMapping("please/stop/init/all")
-    public void stopInitAll(@RequestParam(value = "wait", defaultValue = "false") boolean wait) {
-        this.initIndexService.stop(wait);
+    public String stopInitAll() {
+        return this.initIndexService.stop();
     }
 
     @GetMapping("please/stop/init/{indexName}")
-    public void stopInitOne(@PathVariable("indexName") String indexName) {
-        this.initIndexService.stop(indexName);
+    public String stopInitOne(@PathVariable("indexName") String indexName) {
+        return this.initIndexService.stop(indexName);
     }
 
     @GetMapping("please/start/sync/all")
-    public void startSyncAll() {
-        this.syncIndexService.sync();
+    public List<String> startSyncAll() {
+        return this.syncIndexService.sync();
     }
 
     @GetMapping("please/start/sync/{indexName}")
-    public void startSyncOne(@PathVariable("indexName") String indexName) {
-        this.syncIndexService.sync(indexName);
+    public String startSyncOne(@PathVariable("indexName") String indexName) {
+        return this.syncIndexService.sync(indexName);
     }
 
     @GetMapping("please/stop/sync/all")
-    public void stopSyncAll(@RequestParam(value = "wait", defaultValue = "false") boolean wait) {
-        this.syncIndexService.stop(wait);
+    public String stopSyncAll() {
+        return this.syncIndexService.stop();
     }
 
     @GetMapping("please/stop/sync/{indexName}")
-    public void stopSyncOne(@PathVariable("indexName") String indexName) {
-        this.syncIndexService.stop(indexName);
+    public String stopSyncOne(@PathVariable("indexName") String indexName) {
+        return this.syncIndexService.stop(indexName);
     }
 
     @GetMapping("please/fix/{indexName}/{id}")
@@ -85,9 +88,8 @@ public class PleaseController {
     }
 
     @GetMapping("please/show/metrics")
-    public void showMetrics() {
-        this.initIndexService.showMetrics();
-        this.syncIndexService.showMetrics();
+    public List<Metrics> showMetrics() {
+        return List.of(this.initIndexService.getMetrics(), this.syncIndexService.getMetrics());
     }
 
 }

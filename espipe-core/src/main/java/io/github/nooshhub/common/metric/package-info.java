@@ -14,34 +14,9 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub.concurrent;
-
-import io.github.nooshhub.dao.JdbcDao;
-
 /**
- * Init index thread.
- *
+ * Metric.
  * @author Neal Shan
- * @since 6/12/2022
+ * @since 7/2/2022
  */
-public class SyncThread implements Runnable {
-
-    private final JdbcDao jdbcDao;
-
-    private final String indexName;
-
-    public SyncThread(JdbcDao jdbcDao, String indexName) {
-        this.jdbcDao = jdbcDao;
-        this.indexName = indexName;
-    }
-
-    @Override
-    public void run() {
-        this.jdbcDao.sync(this.indexName);
-    }
-
-    public String getIndexName() {
-        return indexName;
-    }
-
-}
+package io.github.nooshhub.common.metric;

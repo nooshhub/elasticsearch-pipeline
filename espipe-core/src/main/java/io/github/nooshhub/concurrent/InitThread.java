@@ -17,8 +17,6 @@
 package io.github.nooshhub.concurrent;
 
 import io.github.nooshhub.dao.JdbcDao;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Init index thread.
@@ -27,8 +25,6 @@ import org.slf4j.LoggerFactory;
  * @since 6/12/2022
  */
 public class InitThread implements Runnable {
-
-    private static final Logger log = LoggerFactory.getLogger(InitThread.class);
 
     private final JdbcDao jdbcDao;
 
@@ -48,8 +44,4 @@ public class InitThread implements Runnable {
         return indexName;
     }
 
-    public void stop() {
-        log.info("interrupt thread {}", Thread.currentThread().getName());
-        Thread.currentThread().interrupt();
-    }
 }
