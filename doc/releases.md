@@ -5,24 +5,24 @@
 - Performance Tuning, preprocesses according to the amount of data, 
 performs segmentation according to time or id, 
 parallel insertion by multi-threaded, divide and conquer
-- add init, sync mode to avoid them running together 
+- Close the connection before closing the service? The new java client does not have close, the old rest client has close.
+ [reference](https://discuss.elastic.co/t/closing-client-on-shutdown/14669/3)
+- espipe logo
+- distribution mode
+
+**0.0.4-SNAPSHOT-TBD**
 - data validation after init? Is it necessary? like 108500 was inserted but only 108492 is success.
 - integrate with dynamic-tp to see what's the thread pool is going on
 - The shutdown hook gracefully shuts down the program and waits for the current thread to finish executing before shutting down.
  If the record fails, it starts from the location where the record was executed by a thread.
-- Close the connection before closing the service? The new java client does not have close, the old rest client has close.
- [reference](https://discuss.elastic.co/t/closing-client-on-shutdown/14669/3)
-- Test code optimization, check whether the write operation to database except H2
-- Let espipe start from the command line like es, package it and decompress it and use it directly
-- espipe logo
-- distribution mode
 
 **0.0.3-SNAPSHOT**
 - move design to /doc/design.md
 - move tbd abd release notes to /doc/releases.md
 - add online api for usage
-- add command line api for usage
 - tuning code structure as design 
+- same index's init and sync should not run together at same time 
+- unit test for espipe-core module
 
 **0.0.2-SNAPSHOT**
 
