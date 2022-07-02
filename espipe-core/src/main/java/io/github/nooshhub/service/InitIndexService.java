@@ -42,7 +42,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class InitIndexService {
 
-    private static final Logger log = LoggerFactory.getLogger(InitIndexService.class);
+    private static final Logger logger = LoggerFactory.getLogger(InitIndexService.class);
 
     @Autowired
     private IndexConfigRegistry indexConfigRegistry;
@@ -62,7 +62,7 @@ public class InitIndexService {
     public String init(String indexName) {
         if (InitSyncManager.getInitInProgress().containsKey(indexName)) {
             final String message = String.format("Index %s is in init progress, please stop it manually.", indexName);
-            log.info(message);
+            logger.info(message);
             return message;
         }
 
@@ -71,7 +71,7 @@ public class InitIndexService {
         InitSyncManager.getInitInProgress().put(indexName, future);
 
         final String message = String.format("Init index %s is in progress", indexName);
-        log.info(message);
+        logger.info(message);
         return message;
     }
 
@@ -79,7 +79,7 @@ public class InitIndexService {
         InitSyncManager.getInitInProgress().values().forEach(future -> future.cancel(true));
         InitSyncManager.getInitInProgress().clear();
         final String message = "Shutdown all init";
-        log.info(message);
+        logger.info(message);
         return message;
     }
 
@@ -89,11 +89,11 @@ public class InitIndexService {
             InitSyncManager.getInitInProgress().remove(indexName);
 
             final String message = String.format("Remove index %s from init in progress", indexName);
-            log.info(message);
+            logger.info(message);
             return message;
         } else {
             final String message = String.format("Index %s is not in init in progress", indexName);
-            log.info(message);
+            logger.info(message);
             return message;
         }
     }

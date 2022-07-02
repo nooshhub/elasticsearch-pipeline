@@ -35,11 +35,11 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractThreadPoolFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractThreadPoolFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractThreadPoolFactory.class);
 
     public static ThreadPoolExecutor poolForInit() {
         final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 3;
-        log.info("number of threads {}", nThreads);
+        logger.info("number of threads {}", nThreads);
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 nThreads,
                 nThreads,
@@ -47,16 +47,16 @@ public abstract class AbstractThreadPoolFactory {
                 TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(),
                 new CustomThreadFactory("init"));
-        log.info(threadPoolExecutor.toString());
+        logger.info(threadPoolExecutor.toString());
         return threadPoolExecutor;
     }
 
     public static ScheduledThreadPoolExecutor poolForSync() {
         final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 1;
-        log.info("number of threads {}", nThreads);
+        logger.info("number of threads {}", nThreads);
         final ScheduledThreadPoolExecutor threadPoolExecutor = new ScheduledThreadPoolExecutor(nThreads,
                 new CustomThreadFactory("sync"));
-        log.info(threadPoolExecutor.toString());
+        logger.info(threadPoolExecutor.toString());
         return threadPoolExecutor;
     }
 

@@ -42,7 +42,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class SyncIndexService {
 
-    private static final Logger log = LoggerFactory.getLogger(SyncIndexService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SyncIndexService.class);
 
     @Autowired
     private IndexConfigRegistry indexConfigRegistry;
@@ -62,13 +62,13 @@ public class SyncIndexService {
     public String sync(String indexName) {
         if (InitSyncManager.getInitInProgress().containsKey(indexName)) {
             final String message = String.format("Index %s is in init progress, skip sync.", indexName);
-            log.info(message);
+            logger.info(message);
             return message;
         }
 
         if (InitSyncManager.getSyncInProgress().containsKey(indexName)) {
             final String message = String.format("Index %s is in sync progress, skip sync.", indexName);
-            log.info(message);
+            logger.info(message);
             return message;
         }
 
@@ -81,7 +81,7 @@ public class SyncIndexService {
         InitSyncManager.getSyncInProgress().put(indexName, scheduledFuture);
 
         final String message = String.format("Sync index %s is in progress", indexName);
-        log.info(message);
+        logger.info(message);
         return message;
     }
 
@@ -89,7 +89,7 @@ public class SyncIndexService {
         InitSyncManager.getSyncInProgress().values().forEach(future -> future.cancel(true));
         InitSyncManager.getSyncInProgress().clear();
         final String message = "Shutdown all sync";
-        log.info(message);
+        logger.info(message);
         return message;
     }
 
@@ -99,11 +99,11 @@ public class SyncIndexService {
             InitSyncManager.getSyncInProgress().remove(indexName);
 
             final String message = String.format("Remove index %s from sync in progress", indexName);
-            log.info(message);
+            logger.info(message);
             return message;
         } else {
             final String message = String.format("Index %s is not in sync in progress", indexName);
-            log.info(message);
+            logger.info(message);
             return message;
         }
     }
