@@ -12,6 +12,7 @@ parallel insertion by multi-threaded, divide and conquer
 
 **0.0.4-SNAPSHOT-TBD**
 - data validation after init? Is it necessary? like 108500 was inserted but only 108492 is success.
+- fix lost data api
 - integrate with dynamic-tp to see what's the thread pool is going on
 - The shutdown hook gracefully shuts down the program and waits for the current thread to finish executing before shutting down.
  If the record fails, it starts from the location where the record was executed by a thread.
