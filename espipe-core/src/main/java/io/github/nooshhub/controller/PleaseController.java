@@ -84,7 +84,7 @@ public class PleaseController {
 
     @GetMapping("please/fix/{indexName}/{id}")
     public void fixOne() {
-        // TOOD: if the result do exist, then fix it.
+        // TODO: if the result is exist in DB, then fix it.
     }
 
     @GetMapping("please/show/metrics")
