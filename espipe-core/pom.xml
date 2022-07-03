@@ -5,10 +5,10 @@
     <parent>
         <groupId>io.github.nooshhub</groupId>
         <artifactId>elasticsearch-pipeline</artifactId>
-        <version>0.0.3-SNAPSHOT</version>
+        <version>0.0.4-SNAPSHOT</version>
     </parent>
 	<artifactId>espipe-core</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.4-SNAPSHOT</version>
 	<name>espipe-core</name>
 	<description>Elasticsearch pipeline core module</description>
 	<properties>
