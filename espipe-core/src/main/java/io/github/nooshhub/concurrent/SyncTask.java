@@ -41,7 +41,7 @@ public class SyncTask implements Runnable {
     }
 
     public String getIndexName() {
-        return indexName;
+        return this.indexName;
     }
 
 }

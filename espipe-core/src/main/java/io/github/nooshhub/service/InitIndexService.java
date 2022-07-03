@@ -23,8 +23,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
-import io.github.nooshhub.concurrent.TaskManager;
 import io.github.nooshhub.concurrent.InitTask;
+import io.github.nooshhub.concurrent.TaskManager;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
@@ -54,8 +54,7 @@ public class InitIndexService {
 
     public List<String> init() {
         List<String> messages = new ArrayList<>();
-        this.indexConfigRegistry.getIndexConfigs().keySet()
-                .forEach(indexName -> messages.add(this.init(indexName)));
+        this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> messages.add(this.init(indexName)));
         return messages;
     }
 
@@ -76,7 +75,7 @@ public class InitIndexService {
     }
 
     public String stop() {
-        TaskManager.getInitInProgress().values().forEach(future -> future.cancel(true));
+        TaskManager.getInitInProgress().values().forEach((future) -> future.cancel(true));
         TaskManager.getInitInProgress().clear();
         final String message = "Shutdown all init";
         logger.info(message);
@@ -91,7 +90,8 @@ public class InitIndexService {
             final String message = String.format("Remove index %s from init in progress", indexName);
             logger.info(message);
             return message;
-        } else {
+        }
+        else {
             final String message = String.format("Index %s is not in init in progress", indexName);
             logger.info(message);
             return message;
@@ -105,4 +105,5 @@ public class InitIndexService {
         metrics.setThreadPoolMetric(this.executorService.toString());
         return metrics;
     }
+
 }

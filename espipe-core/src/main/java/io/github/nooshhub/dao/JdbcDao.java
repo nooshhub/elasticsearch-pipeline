@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import com.zaxxer.hikari.HikariDataSource;
@@ -72,7 +71,6 @@ public class JdbcDao {
     @Autowired
     private IndexConfigRegistry indexConfigRegistry;
 
-
     public JdbcMetric jdbcMetrics() {
         JdbcMetric metric = new JdbcMetric();
         metric.setFetchSize(this.jdbcTemplate.getFetchSize());
@@ -94,7 +92,6 @@ public class JdbcDao {
      * @param indexName index name
      */
     public void init(String indexName) {
-
 
         if (!this.elasticsearchDao.isServerUp()) {
             logger.error("Elasticsearch server is not accessible, please Check.");

@@ -41,7 +41,7 @@ public class InitTask implements Runnable {
     }
 
     public String getIndexName() {
-        return indexName;
+        return this.indexName;
     }
 
 }

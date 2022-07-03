@@ -17,19 +17,25 @@
 package io.github.nooshhub.common.metric;
 
 /**
+ * JDBC metrics to help tracking JDBC connection pool status.
+ *
  * @author Neal Shan
  * @since 7/2/2022
  */
 public class JdbcMetric {
+
     private int fetchSize = -1;
+
     private int maxRows = -1;
+
     private int queryTimeout = -1;
 
     private int maxPoolSize = -1;
+
     private int activeConnections = -1;
 
     public int getFetchSize() {
-        return fetchSize;
+        return this.fetchSize;
     }
 
     public void setFetchSize(int fetchSize) {
@@ -37,7 +43,7 @@ public class JdbcMetric {
     }
 
     public int getMaxRows() {
-        return maxRows;
+        return this.maxRows;
     }
 
     public void setMaxRows(int maxRows) {
@@ -45,7 +51,7 @@ public class JdbcMetric {
     }
 
     public int getQueryTimeout() {
-        return queryTimeout;
+        return this.queryTimeout;
     }
 
     public void setQueryTimeout(int queryTimeout) {
@@ -53,7 +59,7 @@ public class JdbcMetric {
     }
 
     public int getMaxPoolSize() {
-        return maxPoolSize;
+        return this.maxPoolSize;
     }
 
     public void setMaxPoolSize(int maxPoolSize) {
@@ -61,7 +67,7 @@ public class JdbcMetric {
     }
 
     public int getActiveConnections() {
-        return activeConnections;
+        return this.activeConnections;
     }
 
     public void setActiveConnections(int activeConnections) {
@@ -70,12 +76,9 @@ public class JdbcMetric {
 
     @Override
     public String toString() {
-        return "JdbcMetric{" +
-                "fetchSize=" + fetchSize +
-                ", maxRows=" + maxRows +
-                ", queryTimeout=" + queryTimeout +
-                ", maxPoolSize=" + maxPoolSize +
-                ", activeConnections=" + activeConnections +
-                '}';
+        return "JdbcMetric{" + "fetchSize=" + this.fetchSize + ", maxRows=" + this.maxRows + ", queryTimeout="
+                + this.queryTimeout + ", maxPoolSize=" + this.maxPoolSize + ", activeConnections="
+                + this.activeConnections + '}';
     }
+
 }

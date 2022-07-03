@@ -1,1 +1,1 @@
-mvn clean install
+mvn spring-javaformat:apply && mvn clean install

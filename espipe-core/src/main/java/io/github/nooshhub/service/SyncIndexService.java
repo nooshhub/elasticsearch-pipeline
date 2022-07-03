@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
-import io.github.nooshhub.concurrent.TaskManager;
 import io.github.nooshhub.concurrent.SyncTask;
+import io.github.nooshhub.concurrent.TaskManager;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
@@ -55,8 +55,7 @@ public class SyncIndexService {
 
     public List<String> sync() {
         List<String> messages = new ArrayList<>();
-        this.indexConfigRegistry.getIndexConfigs().keySet()
-                .forEach(indexName -> messages.add(this.sync(indexName)));
+        this.indexConfigRegistry.getIndexConfigs().keySet().forEach((indexName) -> messages.add(this.sync(indexName)));
         return messages;
     }
 
@@ -73,11 +72,8 @@ public class SyncIndexService {
             return message;
         }
 
-        ScheduledFuture scheduledFuture = this.executorService.scheduleWithFixedDelay(
-                new SyncTask(this.jdbcDao, indexName),
-                1000,
-                5000,
-                TimeUnit.MILLISECONDS);
+        ScheduledFuture scheduledFuture = this.executorService
+                .scheduleWithFixedDelay(new SyncTask(this.jdbcDao, indexName), 1000, 5000, TimeUnit.MILLISECONDS);
 
         TaskManager.getSyncInProgress().put(indexName, scheduledFuture);
 
@@ -87,7 +83,7 @@ public class SyncIndexService {
     }
 
     public String stop() {
-        TaskManager.getSyncInProgress().values().forEach(future -> future.cancel(true));
+        TaskManager.getSyncInProgress().values().forEach((future) -> future.cancel(true));
         TaskManager.getSyncInProgress().clear();
         final String message = "Shutdown all sync";
         logger.info(message);
@@ -102,7 +98,8 @@ public class SyncIndexService {
             final String message = String.format("Remove index %s from sync in progress", indexName);
             logger.info(message);
             return message;
-        } else {
+        }
+        else {
             final String message = String.format("Index %s is not in sync in progress", indexName);
             logger.info(message);
             return message;

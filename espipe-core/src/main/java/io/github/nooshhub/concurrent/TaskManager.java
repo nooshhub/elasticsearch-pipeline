@@ -21,13 +21,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 
-
 /**
+ * Task manger is used to manage the init and sync thread's start and stop lifecycle.
+ *
  * @author Neal Shan
  * @since 7/2/2022
  */
-public class TaskManager {
+public final class TaskManager {
+
+    private TaskManager() {
+    }
+
     private static final Map<String, Future> initInProgress = new ConcurrentHashMap<>();
+
     private static final Map<String, ScheduledFuture> syncInProgress = new ConcurrentHashMap<>();
 
     public static Map<String, Future> getInitInProgress() {
@@ -37,4 +43,5 @@ public class TaskManager {
     public static Map<String, ScheduledFuture> getSyncInProgress() {
         return syncInProgress;
     }
+
 }

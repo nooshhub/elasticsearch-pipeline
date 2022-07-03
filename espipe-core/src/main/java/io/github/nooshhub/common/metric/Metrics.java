@@ -19,16 +19,21 @@ package io.github.nooshhub.common.metric;
 import java.util.Set;
 
 /**
+ * An aggregation of metrics.
+ *
  * @author Neal Shan
  * @since 7/2/2022
  */
 public class Metrics {
+
     private Set<String> initInProgress;
+
     private JdbcMetric jdbcMetric;
+
     private String threadPoolMetric;
 
     public Set<String> getInitInProgress() {
-        return initInProgress;
+        return this.initInProgress;
     }
 
     public void setInitInProgress(Set<String> initInProgress) {
@@ -36,7 +41,7 @@ public class Metrics {
     }
 
     public JdbcMetric getJdbcMetric() {
-        return jdbcMetric;
+        return this.jdbcMetric;
     }
 
     public void setJdbcMetric(JdbcMetric jdbcMetric) {
@@ -44,10 +49,11 @@ public class Metrics {
     }
 
     public String getThreadPoolMetric() {
-        return threadPoolMetric;
+        return this.threadPoolMetric;
     }
 
     public void setThreadPoolMetric(String threadPoolMetric) {
         this.threadPoolMetric = threadPoolMetric;
     }
+
 }

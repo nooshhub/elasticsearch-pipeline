@@ -40,13 +40,8 @@ public abstract class AbstractThreadPoolFactory {
     public static ThreadPoolExecutor poolForInit() {
         final int nThreads = Runtime.getRuntime().availableProcessors() / 5 + 3;
         logger.info("number of threads {}", nThreads);
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                nThreads,
-                nThreads,
-                0L,
-                TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(),
-                new CustomThreadFactory("init"));
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(nThreads, nThreads, 0L,
+                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new CustomThreadFactory("init"));
         logger.info(threadPoolExecutor.toString());
         return threadPoolExecutor;
     }
