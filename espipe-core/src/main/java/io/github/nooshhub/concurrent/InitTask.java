@@ -24,13 +24,13 @@ import io.github.nooshhub.dao.JdbcDao;
  * @author Neal Shan
  * @since 6/12/2022
  */
-public class InitThread implements Runnable {
+public class InitTask implements Runnable {
 
     private final JdbcDao jdbcDao;
 
     private final String indexName;
 
-    public InitThread(JdbcDao jdbcDao, String indexName) {
+    public InitTask(JdbcDao jdbcDao, String indexName) {
         this.jdbcDao = jdbcDao;
         this.indexName = indexName;
     }

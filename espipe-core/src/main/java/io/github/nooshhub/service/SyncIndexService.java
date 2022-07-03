@@ -24,7 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
-import io.github.nooshhub.concurrent.SyncThread;
+import io.github.nooshhub.concurrent.TaskManager;
+import io.github.nooshhub.concurrent.SyncTask;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
@@ -60,25 +61,25 @@ public class SyncIndexService {
     }
 
     public String sync(String indexName) {
-        if (InitSyncManager.getInitInProgress().containsKey(indexName)) {
+        if (TaskManager.getInitInProgress().containsKey(indexName)) {
             final String message = String.format("Index %s is in init progress, skip sync.", indexName);
             logger.info(message);
             return message;
         }
 
-        if (InitSyncManager.getSyncInProgress().containsKey(indexName)) {
+        if (TaskManager.getSyncInProgress().containsKey(indexName)) {
             final String message = String.format("Index %s is in sync progress, skip sync.", indexName);
             logger.info(message);
             return message;
         }
 
         ScheduledFuture scheduledFuture = this.executorService.scheduleWithFixedDelay(
-                new SyncThread(this.jdbcDao, indexName),
+                new SyncTask(this.jdbcDao, indexName),
                 1000,
                 5000,
                 TimeUnit.MILLISECONDS);
 
-        InitSyncManager.getSyncInProgress().put(indexName, scheduledFuture);
+        TaskManager.getSyncInProgress().put(indexName, scheduledFuture);
 
         final String message = String.format("Sync index %s is in progress", indexName);
         logger.info(message);
@@ -86,17 +87,17 @@ public class SyncIndexService {
     }
 
     public String stop() {
-        InitSyncManager.getSyncInProgress().values().forEach(future -> future.cancel(true));
-        InitSyncManager.getSyncInProgress().clear();
+        TaskManager.getSyncInProgress().values().forEach(future -> future.cancel(true));
+        TaskManager.getSyncInProgress().clear();
         final String message = "Shutdown all sync";
         logger.info(message);
         return message;
     }
 
     public String stop(String indexName) {
-        if (InitSyncManager.getSyncInProgress().containsKey(indexName)) {
-            InitSyncManager.getSyncInProgress().get(indexName).cancel(true);
-            InitSyncManager.getSyncInProgress().remove(indexName);
+        if (TaskManager.getSyncInProgress().containsKey(indexName)) {
+            TaskManager.getSyncInProgress().get(indexName).cancel(true);
+            TaskManager.getSyncInProgress().remove(indexName);
 
             final String message = String.format("Remove index %s from sync in progress", indexName);
             logger.info(message);
@@ -110,7 +111,7 @@ public class SyncIndexService {
 
     public Metrics getMetrics() {
         Metrics metrics = new Metrics();
-        metrics.setInitInProgress(InitSyncManager.getSyncInProgress().keySet());
+        metrics.setInitInProgress(TaskManager.getSyncInProgress().keySet());
         metrics.setJdbcMetric(this.jdbcDao.jdbcMetrics());
         metrics.setThreadPoolMetric(this.executorService.toString());
         return metrics;

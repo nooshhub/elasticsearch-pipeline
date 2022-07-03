@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
-import io.github.nooshhub.concurrent.InitThread;
+import io.github.nooshhub.concurrent.TaskManager;
+import io.github.nooshhub.concurrent.InitTask;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
 import org.slf4j.Logger;
@@ -60,15 +60,15 @@ public class InitIndexService {
     }
 
     public String init(String indexName) {
-        if (InitSyncManager.getInitInProgress().containsKey(indexName)) {
+        if (TaskManager.getInitInProgress().containsKey(indexName)) {
             final String message = String.format("Index %s is in init progress, please stop it manually.", indexName);
             logger.info(message);
             return message;
         }
 
-        Future<?> future = this.executorService.submit(new InitThread(this.jdbcDao, indexName));
+        Future<?> future = this.executorService.submit(new InitTask(this.jdbcDao, indexName));
 
-        InitSyncManager.getInitInProgress().put(indexName, future);
+        TaskManager.getInitInProgress().put(indexName, future);
 
         final String message = String.format("Init index %s is in progress", indexName);
         logger.info(message);
@@ -76,17 +76,17 @@ public class InitIndexService {
     }
 
     public String stop() {
-        InitSyncManager.getInitInProgress().values().forEach(future -> future.cancel(true));
-        InitSyncManager.getInitInProgress().clear();
+        TaskManager.getInitInProgress().values().forEach(future -> future.cancel(true));
+        TaskManager.getInitInProgress().clear();
         final String message = "Shutdown all init";
         logger.info(message);
         return message;
     }
 
     public String stop(String indexName) {
-        if (InitSyncManager.getInitInProgress().containsKey(indexName)) {
-            InitSyncManager.getInitInProgress().get(indexName).cancel(true);
-            InitSyncManager.getInitInProgress().remove(indexName);
+        if (TaskManager.getInitInProgress().containsKey(indexName)) {
+            TaskManager.getInitInProgress().get(indexName).cancel(true);
+            TaskManager.getInitInProgress().remove(indexName);
 
             final String message = String.format("Remove index %s from init in progress", indexName);
             logger.info(message);
@@ -100,7 +100,7 @@ public class InitIndexService {
 
     public Metrics getMetrics() {
         Metrics metrics = new Metrics();
-        metrics.setInitInProgress(InitSyncManager.getInitInProgress().keySet());
+        metrics.setInitInProgress(TaskManager.getInitInProgress().keySet());
         metrics.setJdbcMetric(this.jdbcDao.jdbcMetrics());
         metrics.setThreadPoolMetric(this.executorService.toString());
         return metrics;
