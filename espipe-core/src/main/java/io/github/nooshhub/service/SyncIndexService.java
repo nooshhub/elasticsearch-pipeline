@@ -18,10 +18,12 @@ package io.github.nooshhub.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import io.github.nooshhub.common.metric.IndexMetric;
 import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
 import io.github.nooshhub.concurrent.SyncTask;
@@ -60,7 +62,8 @@ public class SyncIndexService {
     }
 
     public String sync(String indexName) {
-        if (TaskManager.getInitInProgress().containsKey(indexName)) {
+        Future future = TaskManager.getInitInProgress().get(indexName);
+        if (future != null && !future.isDone()) {
             final String message = String.format("Index %s is in init progress, skip sync.", indexName);
             logger.info(message);
             return message;
@@ -72,10 +75,9 @@ public class SyncIndexService {
             return message;
         }
 
-        ScheduledFuture scheduledFuture = this.executorService
+        ScheduledFuture newScheduledFuture = this.executorService
                 .scheduleWithFixedDelay(new SyncTask(this.jdbcDao, indexName), 1000, 5000, TimeUnit.MILLISECONDS);
-
-        TaskManager.getSyncInProgress().put(indexName, scheduledFuture);
+        TaskManager.getSyncInProgress().put(indexName, newScheduledFuture);
 
         final String message = String.format("Sync index %s is in progress", indexName);
         logger.info(message);
@@ -108,7 +110,15 @@ public class SyncIndexService {
 
     public Metrics getMetrics() {
         Metrics metrics = new Metrics();
-        metrics.setInitInProgress(TaskManager.getSyncInProgress().keySet());
+        List<IndexMetric> indexMetrics = new ArrayList<>();
+        TaskManager.getSyncInProgress().forEach((indexName, future) -> {
+            IndexMetric indexMetric = new IndexMetric();
+            indexMetric.setIndexName(indexName);
+            indexMetric.setIsDone(future.isDone());
+            indexMetric.setIsCancelled(future.isCancelled());
+            indexMetrics.add(indexMetric);
+        });
+        metrics.setIndexMetrics(indexMetrics);
         metrics.setJdbcMetric(this.jdbcDao.jdbcMetrics());
         metrics.setThreadPoolMetric(this.executorService.toString());
         return metrics;
