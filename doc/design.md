@@ -28,4 +28,20 @@ we will log the error
 - case 4: speed
 currently 100k could be synced in 15s, I believe we could make this much faster since load 100k data from a database only takes 4s.
 
-ESPIPE is query-based ETL, we may support log-based ETL in the future.
+**ESPIPE is query-based ETL, we may support log-based ETL in the future.**
+
+The sql and index settings are under espipe directory, you can custmized it as your lie.
+``` 
+espipe
+--h2 [database]  
+----es
+--------nhproject [index name]  
+------------sql 
+----------------init.sql 
+----------------sync.sql 
+----------------delete.sql  
+----------------extension.sql [optinal, if there is an extension table for custom fields]  
+----------------sql.properties [set primary id column name, and extension columns' name]  
+------------mapping.json [index mapping]  
+------------settings.json [index settings]  
+```
