@@ -4,6 +4,15 @@ Support Elasticsearch version >= 7.17.4, current target version is 8.2.2.
 [download](https://www.elastic.co/downloads/elasticsearch)
 
 ### get started
+Start service.
+```
+cd espipe-core 
+start_es_server.cmd
+mvn_run.cmd
+```  
+Access API by postman.    
+Postman script is under espipe-core/src/test/postman/espipe.postman_collection.json.    
+Import it into your postman.    
 ```
 http://localhost:8713/please/start/init/all
 http://localhost:8713/please/start/init/{indexName}
@@ -15,8 +24,6 @@ http://localhost:8713/please/stop/sync/all
 http://localhost:8713/please/stop/sync/{indexName}
 http://localhost:8713/please/fix/{indexName}/{id}
 http://localhost:8713/please/show/metrics   
-
-# postman script is under espipe-core/src/test/postman
 ``` 
 
 ### develop
