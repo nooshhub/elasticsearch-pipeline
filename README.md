@@ -7,10 +7,12 @@ Support Elasticsearch version >= 7.17.4, current target version is 8.2.2.
 Start service.
 ```
 cd espipe-core 
+// start your Elasticsearch 
 start_es_server.cmd
+// start espipe core
 mvn_run.cmd
 ```  
-Access API by postman.    
+Access API by postman or Apifox.    
 Postman script is under espipe-core/src/test/postman/espipe.postman_collection.json.    
 Import it into your postman.    
 ```
