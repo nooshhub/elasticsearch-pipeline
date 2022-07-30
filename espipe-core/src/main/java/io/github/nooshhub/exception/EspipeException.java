@@ -27,9 +27,9 @@ import io.github.nooshhub.vo.StatusCode;
  */
 public class EspipeException extends RuntimeException {
 
+    private final int code;
 
-    private int code;
-    private String msg;
+    private final String msg;
 
     public EspipeException(String message) {
         super(message);
@@ -50,4 +50,5 @@ public class EspipeException extends RuntimeException {
     public String getMsg() {
         return this.msg;
     }
+
 }

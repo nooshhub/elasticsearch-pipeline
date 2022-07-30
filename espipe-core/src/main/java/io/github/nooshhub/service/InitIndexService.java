@@ -24,13 +24,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.PreDestroy;
 
-import io.github.nooshhub.metric.IndexMetric;
-import io.github.nooshhub.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
 import io.github.nooshhub.concurrent.InitTask;
 import io.github.nooshhub.concurrent.TaskManager;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.dao.JdbcDao;
+import io.github.nooshhub.metric.IndexMetric;
+import io.github.nooshhub.metric.Metrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

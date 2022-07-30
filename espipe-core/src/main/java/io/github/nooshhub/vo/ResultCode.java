@@ -17,17 +17,29 @@
 package io.github.nooshhub.vo;
 
 /**
+ * Result code is for the front-end to identify error types.
+ *
  * @author Neal Shan
  * @since 2022/7/30
  */
 public enum ResultCode implements StatusCode {
 
+    /**
+     * success.
+     */
     SUCCESS(10000, "success"),
+    /**
+     * public error.
+     */
     PUBLIC_ERROR(10001, "public error"),
+    /**
+     * internal error.
+     */
     INTERNAL_ERROR(10002, "internal error");
 
     // status code
     private int code;
+
     // status code detail
     private String msg;
 
@@ -45,4 +57,5 @@ public enum ResultCode implements StatusCode {
     public String getMsg() {
         return this.msg;
     }
+
 }

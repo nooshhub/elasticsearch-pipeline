@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
+ * Wrap exception as ResultVO.
+ *
  * @author Neal Shan
  * @since 2022/7/30
  */
@@ -39,4 +41,5 @@ public class ControllerExceptionAdvice {
     public ResultVo handleIllegalArgumentException(EspipeException ex) {
         return new ResultVo(ResultCode.PUBLIC_ERROR, ex.getMessage());
     }
+
 }

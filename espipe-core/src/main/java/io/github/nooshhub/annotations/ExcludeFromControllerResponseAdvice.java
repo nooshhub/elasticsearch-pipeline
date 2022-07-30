@@ -27,7 +27,8 @@ import java.lang.annotation.Target;
  * @author Neal Shan
  * @since 2022/7/30
  */
-@Target({ElementType.METHOD})
+@Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExcludeFromControllerResponseAdvice {
+
 }

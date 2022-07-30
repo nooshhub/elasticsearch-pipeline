@@ -17,6 +17,8 @@
 package io.github.nooshhub.vo;
 
 /**
+ * A wrapper class for response consistency.
+ *
  * @author Neal Shan
  * @since 7/30/2022
  */
@@ -24,8 +26,10 @@ public class ResultVo {
 
     // status code
     private int code;
+
     // status code detail
     private String msg;
+
     // result object
     private Object data;
 
@@ -73,4 +77,5 @@ public class ResultVo {
     public void setData(Object data) {
         this.data = data;
     }
+
 }

@@ -32,11 +32,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 /**
+ * Wrap response body as ResultVO.
+ *
  * @author Neal Shan
  * @since 2022/7/30
  */
 @RestControllerAdvice(basePackages = "io.github.nooshhub.controller")
 public class ControllerResponseAdvice implements ResponseBodyAdvice<Object> {
+
     @Override
     public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> converterType) {
         return !(methodParameter.getParameterType().isAssignableFrom(ResultVo.class)
@@ -45,17 +48,20 @@ public class ControllerResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter methodParameter, MediaType selectedContentType,
-                                  Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+            Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request,
+            ServerHttpResponse response) {
         // java.lang.ClassCastException: ResultVo incompatible with java.lang.String
         if (methodParameter.getGenericParameterType().equals(String.class)) {
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 return objectMapper.writeValueAsString(new ResultVo(body));
-            } catch (JsonProcessingException e) {
-                throw new EspipeException(ResultCode.PUBLIC_ERROR, e.getMessage());
+            }
+            catch (JsonProcessingException ex) {
+                throw new EspipeException(ResultCode.PUBLIC_ERROR, ex.getMessage());
             }
         }
 
         return new ResultVo(body);
     }
+
 }

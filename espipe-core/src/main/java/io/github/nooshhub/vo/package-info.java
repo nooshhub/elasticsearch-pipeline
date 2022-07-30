@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub.vo;
-
 /**
- * Status Code.
- *
+ * View object.
  * @author Neal Shan
- * @since 7/30/2022
+ * @since 6/27/2022
  */
-public interface StatusCode {
-
-    int getCode();
-
-    String getMsg();
-
-}
+package io.github.nooshhub.vo;
