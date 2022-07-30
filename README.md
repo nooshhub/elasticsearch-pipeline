@@ -38,6 +38,8 @@ mvn_clean_install.cmd
 mvn clean deploy -P release
 ```
 
+### Contribute
+- go ahead send us an issue to ask anything or PR to main branch.
 - [design](/doc/design.md)
 - [tbd and release notes](/doc/releases.md)
 
