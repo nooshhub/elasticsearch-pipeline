@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
+
 /**
  * Index Service.
  *
@@ -86,6 +88,7 @@ public class InitIndexService {
         return sb.toString();
     }
 
+    @PreDestroy
     public String stop() {
         TaskManager.getInitInProgress().values().forEach((future) -> future.cancel(true));
         TaskManager.getInitInProgress().clear();

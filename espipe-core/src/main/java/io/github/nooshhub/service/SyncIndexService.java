@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
+
 /**
  * Espipe Scheduler is used to trigger synchronization task.
  *
@@ -84,6 +86,7 @@ public class SyncIndexService {
         return message;
     }
 
+    @PreDestroy
     public String stop() {
         TaskManager.getSyncInProgress().values().forEach((future) -> future.cancel(true));
         TaskManager.getSyncInProgress().clear();
