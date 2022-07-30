@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
+package io.github.nooshhub.exception;
+
 /**
- * Metric.
+ * Espipe Exception.
+ *
  * @author Neal Shan
- * @since 7/2/2022
+ * @since 6/1/2022
  */
-package io.github.nooshhub.common.metric;
+public class EspipeException extends RuntimeException {
+
+    public EspipeException(String message) {
+        super(message);
+    }
+
+}

@@ -15,6 +15,8 @@
  */
 
 /**
- * Exceptions.
+ * Metric.
+ * @author Neal Shan
+ * @since 7/2/2022
  */
-package io.github.nooshhub.common.exception;
+package io.github.nooshhub.metric;

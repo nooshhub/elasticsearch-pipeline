@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub.common.metric;
+package io.github.nooshhub.metric;
 
 /**
  * Index Metric shows the status of init and sync tasks.

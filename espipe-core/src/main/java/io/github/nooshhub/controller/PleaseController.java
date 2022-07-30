@@ -19,7 +19,7 @@ package io.github.nooshhub.controller;
 import java.util.List;
 import java.util.Map;
 
-import io.github.nooshhub.common.metric.Metrics;
+import io.github.nooshhub.metric.Metrics;
 import io.github.nooshhub.service.InitIndexService;
 import io.github.nooshhub.service.SyncIndexService;
 

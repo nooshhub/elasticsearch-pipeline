@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package io.github.nooshhub.common.exception;
+package io.github.nooshhub.aop;
+
+import io.github.nooshhub.vo.ResultCode;
+import io.github.nooshhub.vo.ResultVo;
+
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Espipe Exception.
- *
  * @author Neal Shan
- * @since 6/1/2022
+ * @since 2022/7/30
  */
-public class EspipeException extends RuntimeException {
+@RestControllerAdvice
+public class ControllerExceptionAdvice {
 
-    public EspipeException(String message) {
-        super(message);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResultVo handleIllegalArgumentException(IllegalArgumentException ex) {
+        return new ResultVo(ResultCode.VALIDATION_ERROR, ex.getMessage());
     }
-
 }

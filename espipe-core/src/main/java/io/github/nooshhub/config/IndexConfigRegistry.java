@@ -27,7 +27,7 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
-import io.github.nooshhub.common.exception.EspipeException;
+import io.github.nooshhub.exception.EspipeException;
 import io.github.nooshhub.support.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PreDestroy;
 
-import io.github.nooshhub.common.metric.IndexMetric;
-import io.github.nooshhub.common.metric.Metrics;
+import io.github.nooshhub.metric.IndexMetric;
+import io.github.nooshhub.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
 import io.github.nooshhub.concurrent.SyncTask;
 import io.github.nooshhub.concurrent.TaskManager;

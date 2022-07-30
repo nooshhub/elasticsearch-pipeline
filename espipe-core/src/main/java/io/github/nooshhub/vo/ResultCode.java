@@ -14,9 +14,35 @@
  * limitations under the License.
  */
 
+package io.github.nooshhub.vo;
+
 /**
- * Common usage like VO, DTO, Exception.
  * @author Neal Shan
- * @since 7/2/2022
+ * @since 2022/7/30
  */
-package io.github.nooshhub.common;
+public enum ResultCode implements StatusCode {
+
+    SUCCESS(10000, "success"),
+    FAIL(10000, "fail"),
+    VALIDATION_ERROR(10000, "validation error");
+
+    // status code
+    private int code;
+    // status code detail
+    private String msg;
+
+    ResultCode(int code, String msg) {
+        this.code = code;
+        this.msg = msg;
+    }
+
+    @Override
+    public int getCode() {
+        return this.code;
+    }
+
+    @Override
+    public String getMsg() {
+        return this.msg;
+    }
+}

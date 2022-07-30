@@ -24,7 +24,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
-import io.github.nooshhub.common.exception.EspipeException;
+import io.github.nooshhub.exception.EspipeException;
 
 /**
  * IO Utils.

@@ -34,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
 
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import com.zaxxer.hikari.HikariDataSource;
-import io.github.nooshhub.common.metric.JdbcMetric;
+import io.github.nooshhub.metric.JdbcMetric;
 import io.github.nooshhub.config.EspipeElasticsearchProperties;
 import io.github.nooshhub.config.IndexConfig;
 import io.github.nooshhub.config.IndexConfigRegistry;

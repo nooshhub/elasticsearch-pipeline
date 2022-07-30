@@ -35,7 +35,7 @@ import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 import co.elastic.clients.elasticsearch.indices.PutIndicesSettingsRequest;
 import co.elastic.clients.elasticsearch.indices.PutMappingRequest;
-import io.github.nooshhub.common.exception.EspipeException;
+import io.github.nooshhub.exception.EspipeException;
 import io.github.nooshhub.config.IndexConfig;
 import io.github.nooshhub.config.IndexConfigRegistry;
 import io.github.nooshhub.support.IOUtils;
