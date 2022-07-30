@@ -18,6 +18,7 @@ package io.github.nooshhub.aop;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.nooshhub.annotations.ExcludeFromControllerResponseAdvice;
 import io.github.nooshhub.exception.EspipeException;
 import io.github.nooshhub.vo.ResultCode;
 import io.github.nooshhub.vo.ResultVo;
@@ -38,7 +39,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 public class ControllerResponseAdvice implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> converterType) {
-        return !methodParameter.getParameterType().isAssignableFrom(ResultVo.class);
+        return !(methodParameter.getParameterType().isAssignableFrom(ResultVo.class)
+                || methodParameter.hasMethodAnnotation(ExcludeFromControllerResponseAdvice.class));
     }
 
     @Override

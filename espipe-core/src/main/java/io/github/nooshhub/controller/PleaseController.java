@@ -19,6 +19,7 @@ package io.github.nooshhub.controller;
 import java.util.List;
 import java.util.Map;
 
+import io.github.nooshhub.annotations.ExcludeFromControllerResponseAdvice;
 import io.github.nooshhub.metric.Metrics;
 import io.github.nooshhub.service.InitIndexService;
 import io.github.nooshhub.service.SyncIndexService;
@@ -110,6 +111,12 @@ public class PleaseController {
     @GetMapping("please/show/metrics")
     public List<Metrics> showMetrics() {
         return List.of(this.initIndexService.getMetrics(), this.syncIndexService.getMetrics());
+    }
+
+    @GetMapping("please/ping")
+    @ExcludeFromControllerResponseAdvice
+    public String ping() {
+        return "pong";
     }
 
 }
