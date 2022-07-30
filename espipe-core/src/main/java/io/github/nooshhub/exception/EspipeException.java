@@ -16,6 +16,9 @@
 
 package io.github.nooshhub.exception;
 
+import io.github.nooshhub.vo.ResultCode;
+import io.github.nooshhub.vo.StatusCode;
+
 /**
  * Espipe Exception.
  *
@@ -24,8 +27,27 @@ package io.github.nooshhub.exception;
  */
 public class EspipeException extends RuntimeException {
 
+
+    private int code;
+    private String msg;
+
     public EspipeException(String message) {
         super(message);
+        this.code = ResultCode.INTERNAL_ERROR.getCode();
+        this.msg = ResultCode.INTERNAL_ERROR.getMsg();
     }
 
+    public EspipeException(StatusCode statusCode, String message) {
+        super(message);
+        this.code = statusCode.getCode();
+        this.msg = statusCode.getMsg();
+    }
+
+    public int getCode() {
+        return this.code;
+    }
+
+    public String getMsg() {
+        return this.msg;
+    }
 }

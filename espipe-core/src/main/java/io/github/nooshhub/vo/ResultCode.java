@@ -23,8 +23,8 @@ package io.github.nooshhub.vo;
 public enum ResultCode implements StatusCode {
 
     SUCCESS(10000, "success"),
-    FAIL(10000, "fail"),
-    VALIDATION_ERROR(10000, "validation error");
+    PUBLIC_ERROR(10001, "public error"),
+    INTERNAL_ERROR(10002, "internal error");
 
     // status code
     private int code;

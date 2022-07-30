@@ -16,6 +16,7 @@
 
 package io.github.nooshhub.aop;
 
+import io.github.nooshhub.exception.EspipeException;
 import io.github.nooshhub.vo.ResultCode;
 import io.github.nooshhub.vo.ResultVo;
 
@@ -31,6 +32,11 @@ public class ControllerExceptionAdvice {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResultVo handleIllegalArgumentException(IllegalArgumentException ex) {
-        return new ResultVo(ResultCode.VALIDATION_ERROR, ex.getMessage());
+        return new ResultVo(ResultCode.PUBLIC_ERROR, ex.getMessage());
+    }
+
+    @ExceptionHandler(EspipeException.class)
+    public ResultVo handleIllegalArgumentException(EspipeException ex) {
+        return new ResultVo(ResultCode.PUBLIC_ERROR, ex.getMessage());
     }
 }

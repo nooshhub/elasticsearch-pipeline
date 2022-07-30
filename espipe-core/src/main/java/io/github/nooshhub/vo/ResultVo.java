@@ -20,22 +20,22 @@ package io.github.nooshhub.vo;
  * @author Neal Shan
  * @since 7/30/2022
  */
-public class ResultVo<T> {
+public class ResultVo {
 
     // status code
     private int code;
     // status code detail
     private String msg;
     // result object
-    private T data;
+    private Object data;
 
     // success
-    public ResultVo(T data) {
+    public ResultVo(Object data) {
         this(ResultCode.SUCCESS.getCode(), ResultCode.SUCCESS.getMsg(), data);
     }
 
     // fail
-    public ResultVo(StatusCode statusCode, T data) {
+    public ResultVo(StatusCode statusCode, Object data) {
         this(statusCode.getCode(), statusCode.getMsg(), data);
     }
 
@@ -44,7 +44,7 @@ public class ResultVo<T> {
         this(statusCode.getCode(), statusCode.getMsg(), null);
     }
 
-    public ResultVo(int code, String msg, T data) {
+    public ResultVo(int code, String msg, Object data) {
         this.code = code;
         this.msg = msg;
         this.data = data;
@@ -66,11 +66,11 @@ public class ResultVo<T> {
         this.msg = msg;
     }
 
-    public T getData() {
+    public Object getData() {
         return this.data;
     }
 
-    public void setData(T data) {
+    public void setData(Object data) {
         this.data = data;
     }
 }
