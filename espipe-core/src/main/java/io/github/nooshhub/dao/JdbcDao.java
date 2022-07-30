@@ -25,10 +25,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import co.elastic.clients.elasticsearch.core.BulkResponse;
@@ -149,6 +146,72 @@ public class JdbcDao {
         this.espipeTimerDao.save(indexName, currentRefreshTime);
         logger.info("Init index {} success", indexName);
         logger.info("Total time: {}s", sw.getTotalTimeSeconds());
+    }
+
+    /**
+     * Init one index with ids and values in a map.
+     *
+     * @param indexName index name
+     * @param idAndValueMap id and value map
+     */
+    public void init(String indexName, Map<String, String> idAndValueMap) {
+        if (!this.elasticsearchDao.isServerUp()) {
+            logger.error("Elasticsearch server is not accessible, please Check.");
+            return;
+        }
+
+        StopWatch sw = new StopWatch();
+        sw.start();
+
+        IndexConfig indexConfig = this.indexConfigRegistry.getIndexConfig(indexName);
+        LocalDateTime currentRefreshTime = LocalDateTime.now(ZoneId.systemDefault());
+        List<CompletableFuture<BulkResponse>> futures = new ArrayList<>();
+        List<Map<String, Object>> flattenMapList = new ArrayList<>(this.jdbcTemplate.getFetchSize());
+
+        // prepare the sql for init one index
+        StringBuilder sql = new StringBuilder();
+        sql.append(indexConfig.getInitSql());
+        idAndValueMap.forEach((id, value) -> {
+            sql.append(" AND ").append(id).append(" = ?");
+        });
+
+        this.jdbcTemplate.query((conn) -> {
+                    final PreparedStatement ps = conn.prepareStatement(sql.toString());
+                    int index = 1;
+                    ps.setTimestamp(index, Timestamp.valueOf(currentRefreshTime));
+                    idAndValueMap.forEach((id, value) -> {
+                        try {
+                            ps.setLong(index + 1, Long.parseLong(value));
+                        } catch (SQLException ex) {
+                            throw new IllegalArgumentException(String.format("value %s is incorrect, %s", value, ex.getMessage()));
+                        }
+                    });
+                    return ps;
+                },
+                (rs) -> {
+                    Map<String, Object> flattenMap = createStandardFlattenMap(rs);
+                    flattenMapList.add(flattenMap);
+
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("index data size {}", flattenMapList.size());
+                    }
+                    extendFlattenMap(indexName, flattenMapList);
+                    futures.add(this.elasticsearchDao.createDocument(indexName, flattenMapList));
+                    flattenMapList.clear();
+                });
+
+        if (futures.size() == 0) {
+            // TODO: the exception from a child thread does not seem to be caught.
+            throw new IllegalArgumentException(String.format("id %s is not exist", Arrays.toString(idAndValueMap.values().toArray())));
+        } else {
+            this.elasticsearchDao.processCompletableFutures(indexName, futures);
+
+            sw.stop();
+
+            logger.info("Init one index {} success", indexName);
+            logger.info("Total time: {}s", sw.getTotalTimeSeconds());
+        }
+
     }
 
     /**

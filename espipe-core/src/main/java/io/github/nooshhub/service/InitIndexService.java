@@ -18,6 +18,7 @@ package io.github.nooshhub.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -83,6 +84,25 @@ public class InitIndexService {
         TaskManager.getInitInProgress().put(indexName, newFuture);
 
         final String message = String.format("Init index %s is in progress", indexName);
+        logger.info(message);
+        sb.append(message);
+        return sb.toString();
+    }
+
+    /**
+     * Init one index item by ids and values in a map, not matter if there is a init or sync task in progress,
+     * just fire a init task.
+     *
+     * @param indexName index name
+     * @param idAndValueMap id and value map
+     * @return message of process
+     */
+    public String init(String indexName, Map<String, String> idAndValueMap) {
+        StringBuilder sb = new StringBuilder();
+
+        this.executorService.submit(new InitTask(this.jdbcDao, indexName, idAndValueMap));
+
+        final String message = String.format("Init one index task %s is sent", indexName);
         logger.info(message);
         sb.append(message);
         return sb.toString();
