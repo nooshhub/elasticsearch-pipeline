@@ -23,6 +23,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PreDestroy;
+
 import io.github.nooshhub.common.metric.IndexMetric;
 import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.concurrent.AbstractThreadPoolFactory;
@@ -35,8 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PreDestroy;
 
 /**
  * Espipe Scheduler is used to trigger synchronization task.

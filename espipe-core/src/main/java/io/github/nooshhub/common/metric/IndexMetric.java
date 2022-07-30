@@ -17,6 +17,8 @@
 package io.github.nooshhub.common.metric;
 
 /**
+ * Index Metric shows the status of init and sync tasks.
+ *
  * @author Neal Shan
  * @since 7/8/2022
  */

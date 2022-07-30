@@ -17,7 +17,6 @@
 package io.github.nooshhub.common.metric;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * An aggregation of metrics.
@@ -34,7 +33,7 @@ public class Metrics {
     private String threadPoolMetric;
 
     public List<IndexMetric> getIndexMetrics() {
-        return indexMetrics;
+        return this.indexMetrics;
     }
 
     public void setIndexMetrics(List<IndexMetric> indexMetrics) {

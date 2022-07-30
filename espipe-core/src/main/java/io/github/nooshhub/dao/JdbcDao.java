@@ -25,7 +25,11 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import co.elastic.clients.elasticsearch.core.BulkResponse;
@@ -170,9 +174,7 @@ public class JdbcDao {
         // prepare the sql for init one index
         StringBuilder sql = new StringBuilder();
         sql.append(indexConfig.getInitSql());
-        idAndValueMap.forEach((id, value) -> {
-            sql.append(" AND ").append(id).append(" = ?");
-        });
+        idAndValueMap.forEach((id, value) -> sql.append(" AND ").append(id).append(" = ?"));
 
         this.jdbcTemplate.query((conn) -> {
             final PreparedStatement ps = conn.prepareStatement(sql.toString());

@@ -16,9 +16,9 @@
 
 package io.github.nooshhub.concurrent;
 
-import io.github.nooshhub.dao.JdbcDao;
-
 import java.util.Map;
+
+import io.github.nooshhub.dao.JdbcDao;
 
 /**
  * Init index thread.
