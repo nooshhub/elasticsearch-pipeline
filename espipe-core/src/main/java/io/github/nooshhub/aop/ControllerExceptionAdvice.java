@@ -38,8 +38,8 @@ public class ControllerExceptionAdvice {
     }
 
     @ExceptionHandler(EspipeException.class)
-    public ResultVo handleIllegalArgumentException(EspipeException ex) {
-        return new ResultVo(ResultCode.PUBLIC_ERROR, ex.getMessage());
+    public ResultVo handleEspipeException(EspipeException ex) {
+        return new ResultVo(ResultCode.INTERNAL_ERROR, ex.getMessage());
     }
 
 }

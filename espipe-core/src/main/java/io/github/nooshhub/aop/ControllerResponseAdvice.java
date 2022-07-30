@@ -57,7 +57,7 @@ public class ControllerResponseAdvice implements ResponseBodyAdvice<Object> {
                 return objectMapper.writeValueAsString(new ResultVo(body));
             }
             catch (JsonProcessingException ex) {
-                throw new EspipeException(ResultCode.PUBLIC_ERROR, ex.getMessage());
+                throw new EspipeException(ResultCode.INTERNAL_ERROR, ex.getMessage());
             }
         }
 
