@@ -23,7 +23,9 @@ package io.github.nooshhub.common.metric;
 public class IndexMetric {
 
     private String indexName;
+
     private Boolean isDone;
+
     private Boolean isCancelled;
 
     public String getIndexName() {
@@ -49,4 +51,5 @@ public class IndexMetric {
     public void setIsCancelled(Boolean cancelled) {
         this.isCancelled = cancelled;
     }
+
 }

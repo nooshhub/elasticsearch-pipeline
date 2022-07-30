@@ -17,15 +17,14 @@
 package io.github.nooshhub.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import io.github.nooshhub.common.metric.Metrics;
 import io.github.nooshhub.service.InitIndexService;
 import io.github.nooshhub.service.SyncIndexService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Follow the style of please command. Ex: please init all.
@@ -82,9 +81,26 @@ public class PleaseController {
         return this.syncIndexService.stop(indexName);
     }
 
-    @GetMapping("please/fix/{indexName}/{id}")
-    public void fixOne() {
-        // TODO: if the result is exist in DB, then fix it.
+    // TODO: how do i know the columns, there is suppose to be a page that load the index
+    // with id columns first,
+    // and then you can input the ids that you get from database, and call this api to fix
+    // the index.
+    @PostMapping("please/fix/{indexName}")
+    public String fixIndex(@PathVariable("indexName") String indexName,
+            @RequestBody Map<String, String> idAndValueMap) {
+
+        if (idAndValueMap == null || idAndValueMap.isEmpty()) {
+            throw new IllegalArgumentException("id and value map must not be empty");
+        }
+        else {
+            idAndValueMap.forEach((k, v) -> {
+                if (k == null || v == null) {
+                    throw new IllegalArgumentException("id and value must not be null");
+                }
+            });
+        }
+
+        return this.initIndexService.init(indexName, idAndValueMap);
     }
 
     @GetMapping("please/show/metrics")

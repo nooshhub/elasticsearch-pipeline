@@ -18,6 +18,8 @@ package io.github.nooshhub.concurrent;
 
 import io.github.nooshhub.dao.JdbcDao;
 
+import java.util.Map;
+
 /**
  * Init index thread.
  *
@@ -30,14 +32,26 @@ public class InitTask implements Runnable {
 
     private final String indexName;
 
+    private final Map<String, String> idAndValueMap;
+
     public InitTask(JdbcDao jdbcDao, String indexName) {
+        this(jdbcDao, indexName, null);
+    }
+
+    public InitTask(JdbcDao jdbcDao, String indexName, Map<String, String> idAndValueMap) {
         this.jdbcDao = jdbcDao;
         this.indexName = indexName;
+        this.idAndValueMap = idAndValueMap;
     }
 
     @Override
     public void run() {
-        this.jdbcDao.init(this.indexName);
+        if (this.idAndValueMap == null) {
+            this.jdbcDao.init(this.indexName);
+        }
+        else {
+            this.jdbcDao.init(this.indexName, this.idAndValueMap);
+        }
     }
 
     public String getIndexName() {
