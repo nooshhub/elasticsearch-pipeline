@@ -90,9 +90,8 @@ public class InitIndexService {
     }
 
     /**
-     * Init one index item by ids and values in a map, not matter if there is a init or sync task in progress,
-     * just fire a init task.
-     *
+     * Init one index item by ids and values in a map, not matter if there is a init or
+     * sync task in progress, just fire a init task.
      * @param indexName index name
      * @param idAndValueMap id and value map
      * @return message of process

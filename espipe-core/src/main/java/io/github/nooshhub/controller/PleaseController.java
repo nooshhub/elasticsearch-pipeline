@@ -81,16 +81,19 @@ public class PleaseController {
         return this.syncIndexService.stop(indexName);
     }
 
-    // TODO: how do i know the columns, there is suppose to be a page that load the index with id columns first,
-    // and then you can input the ids that you get from database, and call this api to fix the index.
+    // TODO: how do i know the columns, there is suppose to be a page that load the index
+    // with id columns first,
+    // and then you can input the ids that you get from database, and call this api to fix
+    // the index.
     @PostMapping("please/fix/{indexName}")
     public String fixIndex(@PathVariable("indexName") String indexName,
-                    @RequestBody Map<String, String> idAndValueMap) {
+            @RequestBody Map<String, String> idAndValueMap) {
 
         if (idAndValueMap == null || idAndValueMap.isEmpty()) {
             throw new IllegalArgumentException("id and value map must not be empty");
-        } else {
-            idAndValueMap.forEach((k,v) -> {
+        }
+        else {
+            idAndValueMap.forEach((k, v) -> {
                 if (k == null || v == null) {
                     throw new IllegalArgumentException("id and value must not be null");
                 }

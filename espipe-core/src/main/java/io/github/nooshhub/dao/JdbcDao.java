@@ -150,7 +150,6 @@ public class JdbcDao {
 
     /**
      * Init one index with ids and values in a map.
-     *
      * @param indexName index name
      * @param idAndValueMap id and value map
      */
@@ -176,34 +175,37 @@ public class JdbcDao {
         });
 
         this.jdbcTemplate.query((conn) -> {
-                    final PreparedStatement ps = conn.prepareStatement(sql.toString());
-                    int index = 1;
-                    ps.setTimestamp(index, Timestamp.valueOf(currentRefreshTime));
-                    idAndValueMap.forEach((id, value) -> {
-                        try {
-                            ps.setLong(index + 1, Long.parseLong(value));
-                        } catch (SQLException ex) {
-                            throw new IllegalArgumentException(String.format("value %s is incorrect, %s", value, ex.getMessage()));
-                        }
-                    });
-                    return ps;
-                },
-                (rs) -> {
-                    Map<String, Object> flattenMap = createStandardFlattenMap(rs);
-                    flattenMapList.add(flattenMap);
+            final PreparedStatement ps = conn.prepareStatement(sql.toString());
+            int index = 1;
+            ps.setTimestamp(index, Timestamp.valueOf(currentRefreshTime));
+            idAndValueMap.forEach((id, value) -> {
+                try {
+                    ps.setLong(index + 1, Long.parseLong(value));
+                }
+                catch (SQLException ex) {
+                    throw new IllegalArgumentException(
+                            String.format("value %s is incorrect, %s", value, ex.getMessage()));
+                }
+            });
+            return ps;
+        }, (rs) -> {
+            Map<String, Object> flattenMap = createStandardFlattenMap(rs);
+            flattenMapList.add(flattenMap);
 
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("index data size {}", flattenMapList.size());
-                    }
-                    extendFlattenMap(indexName, flattenMapList);
-                    futures.add(this.elasticsearchDao.createDocument(indexName, flattenMapList));
-                    flattenMapList.clear();
-                });
+            if (logger.isDebugEnabled()) {
+                logger.debug("index data size {}", flattenMapList.size());
+            }
+            extendFlattenMap(indexName, flattenMapList);
+            futures.add(this.elasticsearchDao.createDocument(indexName, flattenMapList));
+            flattenMapList.clear();
+        });
 
         if (futures.size() == 0) {
             // TODO: the exception from a child thread does not seem to be caught.
-            throw new IllegalArgumentException(String.format("id %s is not exist", Arrays.toString(idAndValueMap.values().toArray())));
-        } else {
+            throw new IllegalArgumentException(
+                    String.format("id %s is not exist", Arrays.toString(idAndValueMap.values().toArray())));
+        }
+        else {
             this.elasticsearchDao.processCompletableFutures(indexName, futures);
 
             sw.stop();

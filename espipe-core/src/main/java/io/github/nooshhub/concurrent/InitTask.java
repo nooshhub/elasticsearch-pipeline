@@ -48,7 +48,8 @@ public class InitTask implements Runnable {
     public void run() {
         if (this.idAndValueMap == null) {
             this.jdbcDao.init(this.indexName);
-        } else {
+        }
+        else {
             this.jdbcDao.init(this.indexName, this.idAndValueMap);
         }
     }
