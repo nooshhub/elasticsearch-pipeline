@@ -28,45 +28,18 @@ http://localhost:8713/please/fix/{indexName}/{id}
 http://localhost:8713/please/show/metrics   
 ``` 
 
-### develop
-#### set up
-1. please add this to your maven settings.xml
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-    <!-- China only -->
-    <mirrors>
-        <mirror>
-            <id>alimaven</id>
-            <name>aliyun maven</name>
-            <url>https://maven.aliyun.com/repository/central</url>
-            <mirrorOf>central</mirrorOf>
-        </mirror>
-    </mirrors>
-    <!-- a necessity for spring-javaformat plugin-->
-	<pluginGroups>
-		<pluginGroup>io.spring.javaformat</pluginGroup>
-	</pluginGroups>
-</settings>
-```
 
-```bash
-# run this to skip code style check, since we don't want any rules to slow our developing speed.
-mvn_clean_install.cmd
-```
+### Contribute
+- Please feel free to submit an issue or a PR. 
+- [contribute guide](/doc/contribute_guide.md)
+- [design](/doc/design.md)
+- [tbd and release notes](/doc/releases.md)
 
 ### deploy and release
 ```bash 
 # run mvn_prepare_release.cmd before release, this will check code style
 mvn clean deploy -P release
 ```
-
-### Contribute
-- go ahead send us an issue to ask anything or PR to main branch.
-- [design](/doc/design.md)
-- [tbd and release notes](/doc/releases.md)
 
 ### Sponsor
 
