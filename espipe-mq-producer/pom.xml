@@ -6,11 +6,11 @@
     <parent>
         <groupId>io.github.nooshhub</groupId>
         <artifactId>elasticsearch-pipeline</artifactId>
-        <version>0.0.4-SNAPSHOT</version>
+        <version>0.0.5-SNAPSHOT</version>
     </parent>
 
 	<artifactId>espipe-mq-producer</artifactId>
-	<version>0.0.4-SNAPSHOT</version>
+	<version>0.0.5-SNAPSHOT</version>
 	<name>espipe-mq-producer</name>
 	<description>Elasticsearch pipeline message queue producer</description>
 
