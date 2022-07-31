@@ -16,6 +16,9 @@
 
 package io.github.nooshhub.concurrent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,15 +30,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CustomThreadFactory implements ThreadFactory {
 
+    public static final Logger logger = LoggerFactory.getLogger(CustomThreadFactory.class);
+
     private final ThreadGroup group;
 
     private final AtomicInteger threadNumber = new AtomicInteger(1);
 
     private final String namePrefix;
 
+    private final Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
+
     public CustomThreadFactory(String prefix) {
         this.group = Thread.currentThread().getThreadGroup();
         this.namePrefix = prefix + "-t-";
+        this.uncaughtExceptionHandler = new CustomUncaughtExceptionHandler();
     }
 
     public Thread newThread(Runnable r) {
@@ -43,7 +51,15 @@ public class CustomThreadFactory implements ThreadFactory {
         if (t.isDaemon()) {
             t.setDaemon(false);
         }
+        t.setUncaughtExceptionHandler(uncaughtExceptionHandler);
         return t;
+    }
+
+    private static class CustomUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+        @Override
+        public void uncaughtException(Thread thread, Throwable throwable) {
+            logger.error("Thread {} throws an exception {}", thread.getName(), throwable.getMessage());
+        }
     }
 
 }

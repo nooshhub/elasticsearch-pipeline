@@ -203,9 +203,8 @@ public class JdbcDao {
         });
 
         if (futures.size() == 0) {
-            // TODO: the exception from a child thread does not seem to be caught.
             throw new IllegalArgumentException(
-                    String.format("id %s is not exist", Arrays.toString(idAndValueMap.values().toArray())));
+                    String.format("Init one index %s error, id %s is not exist", indexName, Arrays.toString(idAndValueMap.values().toArray())));
         }
         else {
             this.elasticsearchDao.processCompletableFutures(indexName, futures);

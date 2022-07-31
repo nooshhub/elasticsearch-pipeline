@@ -99,7 +99,7 @@ public class InitIndexService {
     public String init(String indexName, Map<String, String> idAndValueMap) {
         StringBuilder sb = new StringBuilder();
 
-        this.executorService.submit(new InitTask(this.jdbcDao, indexName, idAndValueMap));
+        this.executorService.execute(new InitTask(this.jdbcDao, indexName, idAndValueMap));
 
         final String message = String.format("Init one index task %s is sent", indexName);
         logger.info(message);
