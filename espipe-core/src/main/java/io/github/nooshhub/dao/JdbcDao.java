@@ -203,8 +203,8 @@ public class JdbcDao {
         });
 
         if (futures.size() == 0) {
-            throw new IllegalArgumentException(
-                    String.format("Init one index %s error, id %s is not exist", indexName, Arrays.toString(idAndValueMap.values().toArray())));
+            throw new IllegalArgumentException(String.format("Init one index %s error, id %s is not exist", indexName,
+                    Arrays.toString(idAndValueMap.values().toArray())));
         }
         else {
             this.elasticsearchDao.processCompletableFutures(indexName, futures);
