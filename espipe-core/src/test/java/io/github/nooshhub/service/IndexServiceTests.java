@@ -27,7 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit tests for {@link IndexServiceTests}
+ * Unit tests for {@link IndexService}
  *
  * @author Neal Shan
  * @since 6/13/2022

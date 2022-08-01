@@ -16,6 +16,7 @@
 
 package io.github.nooshhub.vo;
 
+import io.github.nooshhub.dao.JdbcDaoTests;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
+ * Unit tests for {@link ResultVo}
+ *
  * @author Neal Shan
  * @since 2022/8/1
  */

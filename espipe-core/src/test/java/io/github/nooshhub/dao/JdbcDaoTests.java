@@ -27,7 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit tests for {@link JdbcDaoTests}
+ * Unit tests for {@link JdbcDao}
  *
  * @author Neal Shan
  * @since 5/31/2022
