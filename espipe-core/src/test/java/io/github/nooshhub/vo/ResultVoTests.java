@@ -16,7 +16,6 @@
 
 package io.github.nooshhub.vo;
 
-import io.github.nooshhub.dao.JdbcDaoTests;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
